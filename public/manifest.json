@@ -1,0 +1,51 @@
+{
+  "short_name": "Crypto Trading Pro",
+  "name": "Crypto Trading Pro - Application de Trading Crypto",
+  "description": "Application web professionnelle pour le trading de cryptomonnaies en temps réel avec analyses techniques, backtesting et signaux IA",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0a0e1a",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#0a0e1a",
+  "orientation": "portrait-primary",
+  "categories": ["finance", "productivity", "investing"],
+  "lang": "fr",
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "features": [
+    "cross-origin-isolated"
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Voir le tableau de bord principal",
+      "url": "/",
+      "icons": [{ "src": "/vite.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Trading",
+      "short_name": "Trading",
+      "description": "Accéder au journal de trading",
+      "url": "/journal",
+      "icons": [{ "src": "/vite.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Paramètres",
+      "short_name": "Settings",
+      "description": "Configurer l'application",
+      "url": "/settings",
+      "icons": [{ "src": "/vite.svg", "sizes": "any" }]
+    }
+  ],
+  "related_applications": [],
+  "screenshots": []
+}
