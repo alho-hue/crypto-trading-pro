@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useCryptoStore } from '../stores/cryptoStore';
-import { Bell, Plus, Trash2, BellRing, BellOff, TrendingUp, TrendingDown, Activity } from 'lucide-react';
+import { Bell, Plus, Trash2, BellRing, BellOff, TrendingUp, TrendingDown, Activity, Smartphone } from 'lucide-react';
+import { requestNotificationPermission, hasNotificationPermission, sendPriceAlert, testNotification } from '../utils/notifications';
 
 interface Alert {
   id: string;
@@ -18,6 +19,7 @@ interface Alert {
 export default function Alerts() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [showCreate, setShowCreate] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [newAlert, setNewAlert] = useState({
     symbol: 'BTCUSDT',
     type: 'price' as 'price' | 'change' | 'volume',
@@ -29,13 +31,23 @@ export default function Alerts() {
   const prices = useCryptoStore((state) => state.prices);
   const selectedSymbol = useCryptoStore((state) => state.selectedSymbol);
 
-  // Load alerts from localStorage
+  // Load alerts from localStorage and check notification permission
   useEffect(() => {
     const saved = localStorage.getItem('trading_alerts');
     if (saved) {
       setAlerts(JSON.parse(saved));
     }
+    setNotificationsEnabled(hasNotificationPermission());
   }, []);
+
+  // Enable notifications
+  const enableNotifications = async () => {
+    const granted = await requestNotificationPermission();
+    setNotificationsEnabled(granted);
+    if (granted) {
+      testNotification();
+    }
+  };
 
   // Save alerts
   const saveAlerts = (updated: Alert[]) => {
@@ -63,11 +75,13 @@ export default function Alerts() {
       }
 
       if (shouldTrigger) {
-        // Trigger notification
-        if (Notification.permission === 'granted') {
+        // Trigger notification via notre système
+        if (alert.type === 'price') {
+          sendPriceAlert(alert.symbol, currentValue, alert.condition as 'above' | 'below', alert.value);
+        } else if (Notification.permission === 'granted') {
           new Notification('Crypto Trading Pro', {
             body: `${alert.symbol}: ${alert.message || 'Alerte déclenchée !'}`,
-            icon: '/icon-192x192.png',
+            icon: '/wolf-ffomix.png',
           });
         }
 
@@ -155,6 +169,38 @@ export default function Alerts() {
           Nouvelle Alerte
         </button>
       </div>
+
+      {/* Notification Permission Banner */}
+      {!notificationsEnabled && (
+        <div className="crypto-card bg-gradient-to-r from-crypto-accent/20 to-crypto-blue/20 border-crypto-accent">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-crypto-accent/30 rounded-full flex items-center justify-center">
+              <Smartphone className="w-6 h-6 text-crypto-accent" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold mb-1">Activez les notifications push</h3>
+              <p className="text-sm text-gray-400">
+                Recevez des alertes instantanées sur votre téléphone même quand l'app est fermée
+              </p>
+            </div>
+            <button
+              onClick={enableNotifications}
+              className="px-4 py-2 bg-crypto-accent hover:bg-crypto-accent/80 rounded-lg font-medium transition-colors"
+            >
+              Activer
+            </button>
+          </div>
+        </div>
+      )}
+
+      {notificationsEnabled && (
+        <div className="crypto-card border-green-500/30 bg-green-500/10">
+          <div className="flex items-center gap-2 text-green-400">
+            <BellRing className="w-5 h-5" />
+            <span>Notifications push activées - Vous recevrez des alertes instantanées</span>
+          </div>
+        </div>
+      )}
 
       {/* Create Modal */}
       {showCreate && (
