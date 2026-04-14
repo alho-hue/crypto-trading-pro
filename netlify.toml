@@ -5,6 +5,13 @@
 [build.environment]
   NODE_VERSION = "20"
 
+# Proxy pour API Binance (contourne CORS)
+[[redirects]]
+  from = "/api/binance/*"
+  to = "https://api.binance.com/api/v3/:splat"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/*"
   to = "/index.html"

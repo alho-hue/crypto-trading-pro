@@ -1,7 +1,7 @@
 import CryptoJS from 'crypto-js';
 
-// API Binance directe - pas besoin de proxy sur Netlify
-const BINANCE_API_URL = 'https://api.binance.com/api/v3';
+// Utilise le proxy Netlify pour contourner CORS
+const BINANCE_API_URL = '/api/binance';
 
 // Les données de marché Binance sont publiques - pas besoin de clé API
 // Seules les opérations privées (trades, compte) nécessitent une clé
