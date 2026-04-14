@@ -1,10 +1,10 @@
 // Service Worker for Crypto Trading Pro PWA
-const CACHE_NAME = 'crypto-trading-pro-v2'; // Version mise à jour
+const CACHE_NAME = 'crypto-trading-pro-v3'; // Force cache refresh
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/vite.svg',
+  '/wolf-ffomix.png',
 ];
 
 // Install event - cache static assets
@@ -101,8 +101,8 @@ async function doBackgroundSync() {
 self.addEventListener('push', (event) => {
   const options = {
     body: event.data?.text() || 'Nouvelle notification',
-    icon: '/vite.svg',
-    badge: '/vite.svg',
+    icon: '/wolf-ffomix.png',
+    badge: '/wolf-ffomix.png',
     tag: 'crypto-trading-alert',
     requireInteraction: true,
   };
