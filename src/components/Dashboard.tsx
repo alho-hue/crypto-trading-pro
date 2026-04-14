@@ -6,6 +6,7 @@ import TradingChart from './TradingChart';
 import AIRecommendations from './AIRecommendations';
 import { FCFAConverter } from './FCFAConverter';
 import { TrendingUp, TrendingDown, Activity, DollarSign, BarChart3 } from 'lucide-react';
+import { formatXOF } from '../utils/currency';
 
 export default function Dashboard() {
   useBinanceWebSocket();
@@ -59,10 +60,18 @@ export default function Dashboard() {
           <div className="min-w-0">
             <div className="text-gray-400 text-xs sm:text-sm">Prix Actuel</div>
             <div>
-              <div className="text-lg sm:text-xl font-bold font-mono truncate">
-                {selectedPrice ? `$${selectedPrice.price.toLocaleString()}` : '--'}
-              </div>
-              {selectedPrice && <FCFAConverter usdAmount={selectedPrice.price} />}
+              {selectedPrice ? (
+                <>
+                  <div className="text-lg sm:text-xl font-bold font-mono">
+                    ${selectedPrice.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </div>
+                  <div className="text-sm text-gray-400">
+                    ≈ {formatXOF(selectedPrice.price)}
+                  </div>
+                </>
+              ) : (
+                <span className="text-lg sm:text-xl font-bold">--</span>
+              )}
             </div>
           </div>
         </div>
@@ -89,10 +98,14 @@ export default function Dashboard() {
           </div>
           <div className="min-w-0">
             <div className="text-gray-400 text-xs sm:text-sm">P&L Total</div>
-            <div className={`text-lg sm:text-xl font-bold font-mono truncate ${
-              stats.totalPnl >= 0 ? 'text-crypto-green' : 'text-crypto-red'
-            }`}>
-              {stats.totalPnl >= 0 ? '+' : ''}${stats.totalPnl.toFixed(2)}
+            <div className={stats.totalPnl >= 0 ? 'text-crypto-green' : 'text-crypto-red'}>
+              <div className="text-lg sm:text-xl font-bold font-mono">
+                {stats.totalPnl >= 0 ? '+' : ''}
+                ${stats.totalPnl.toFixed(2)}
+              </div>
+              <div className="text-sm text-gray-400">
+                ≈ {formatXOF(stats.totalPnl)}
+              </div>
             </div>
           </div>
         </div>
@@ -146,13 +159,19 @@ export default function Dashboard() {
           <h3 className="text-sm font-medium text-gray-400 mb-3">Marché 24h</h3>
           {selectedPrice && (
             <div className="space-y-2">
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-gray-500">Plus Haut</span>
-                <span className="font-mono">${selectedPrice.high24h.toLocaleString()}</span>
+                <div className="text-right">
+                  <div className="font-mono">${selectedPrice.high24h.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                  <div className="text-xs text-gray-400">≈ {formatXOF(selectedPrice.high24h)}</div>
+                </div>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-gray-500">Plus Bas</span>
-                <span className="font-mono">${selectedPrice.low24h.toLocaleString()}</span>
+                <div className="text-right">
+                  <div className="font-mono">${selectedPrice.low24h.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                  <div className="text-xs text-gray-400">≈ {formatXOF(selectedPrice.low24h)}</div>
+                </div>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Volume 24h</span>

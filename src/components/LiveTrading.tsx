@@ -3,6 +3,7 @@ import { Wallet, TrendingUp, TrendingDown, DollarSign, AlertCircle, Lock } from 
 import { useCryptoStore } from '../stores/cryptoStore';
 import { getDecryptedKey } from '../utils/crypto';
 import { fetchAccountBalance, hasApiKey } from '../services/binanceApi';
+import { formatXOF } from '../utils/currency';
 
 interface Balance {
   asset: string;
@@ -17,6 +18,7 @@ export default function LiveTrading() {
   const [loading, setLoading] = useState(false);
   const [totalUSDT, setTotalUSDT] = useState(0);
   const selectedSymbol = useCryptoStore((state) => state.selectedSymbol);
+  const prices = useCryptoStore((state) => state.prices); // Récupérer les prix réels
 
   // Vérifier les clés API au chargement et toutes les 5 secondes
   useEffect(() => {
@@ -40,11 +42,34 @@ export default function LiveTrading() {
       if (result.success && result.balances) {
         setBalances(result.balances);
         
-        // Calculer total USDT (approximation)
-        const total = result.balances.reduce((sum: number, b: Balance) => {
-          return sum + (parseFloat(b.free) + parseFloat(b.locked));
-        }, 0);
-        setTotalUSDT(total);
+        // Calculer total en USD avec les VRAIS prix du store
+        let totalInUSDT = 0;
+        result.balances.forEach((b: Balance) => {
+          const amount = parseFloat(b.free) + parseFloat(b.locked);
+          
+          if (b.asset === 'USDT') {
+            // USDT = 1 USD
+            totalInUSDT += amount;
+          } else {
+            // Chercher le prix réel dans le store
+            const symbol = `${b.asset}USDT`;
+            const priceData = prices.get(symbol);
+            
+            if (priceData && priceData.price > 0) {
+              // Utiliser le prix réel du marché
+              totalInUSDT += amount * priceData.price;
+            } else {
+              // Fallback: chercher d'autres paires
+              const symbolBusd = `${b.asset}BUSD`;
+              const priceDataBusd = prices.get(symbolBusd);
+              if (priceDataBusd && priceDataBusd.price > 0) {
+                totalInUSDT += amount * priceDataBusd.price;
+              }
+              // Si pas de prix trouvé, on ignore cette crypto dans le total
+            }
+          }
+        });
+        setTotalUSDT(totalInUSDT);
       } else {
         console.error('Failed to fetch balance:', result.message);
         alert('Erreur: ' + (result.message || 'Impossible de récupérer le solde'));
@@ -55,7 +80,7 @@ export default function LiveTrading() {
     } finally {
       setLoading(false);
     }
-  }, [hasApiKeys]);
+  }, [hasApiKeys, prices]); // Ajouter prices comme dépendance
 
   if (!hasApiKeys) {
     return (
@@ -104,8 +129,12 @@ export default function LiveTrading() {
             <DollarSign className="w-5 h-5 text-crypto-accent" />
             <span className="text-gray-400">Balance Totale</span>
           </div>
-          <p className="text-3xl font-bold">${totalUSDT.toFixed(2)}</p>
-          <p className="text-sm text-gray-400">≈ {totalUSDT.toFixed(6)} USDT</p>
+          <p className="text-3xl font-bold font-mono">
+            ${totalUSDT.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </p>
+          <p className="text-sm text-gray-400">
+            ≈ {formatXOF(totalUSDT)}
+          </p>
         </div>
 
         <div className="crypto-card">

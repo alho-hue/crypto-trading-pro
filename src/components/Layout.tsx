@@ -13,19 +13,28 @@ import {
   Settings,
   Menu,
   X,
-  TrendingUp
+  TrendingUp,
+  Receipt,
+  Grid3X3,
+  ScanLine,
+  Zap
 } from 'lucide-react';
 
 const navItems: { id: ViewType; label: string; icon: React.ElementType }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'scanner', label: 'Scanner', icon: ScanLine },
   { id: 'liveTrading', label: 'Trading Réel', icon: TrendingUp },
+  { id: 'futures', label: 'Futures', icon: Zap },
+  { id: 'tradeHistory', label: 'Historique', icon: Receipt },
   { id: 'analysis', label: 'Analyse', icon: LineChart },
-  { id: 'strategies', label: 'Stratégies', icon: Bot },
+  { id: 'strategies', label: 'Stratégies', icon: LineChart },
+  { id: 'tradingBot', label: 'Bot Auto', icon: Bot },
   { id: 'alerts', label: 'Alertes', icon: Bell },
   { id: 'journal', label: 'Journal', icon: BookOpen },
   { id: 'portfolio', label: 'Portfolio', icon: Wallet },
   { id: 'risk', label: 'Risque', icon: Calculator },
   { id: 'backtest', label: 'Backtest', icon: History },
+  { id: 'widgetSettings', label: 'Widgets', icon: Grid3X3 },
   { id: 'settings', label: 'Paramètres', icon: Settings },
 ];
 

@@ -92,7 +92,7 @@ export interface IndicatorConfig {
   params: Record<string, number>;
 }
 
-export type Timeframe = '1m' | '5m' | '15m' | '1h' | '4h' | '1d';
+export type Timeframe = '1s' | '1m' | '3m' | '5m' | '15m' | '30m' | '1h' | '2h' | '4h' | '6h' | '8h' | '12h' | '1d' | '3d' | '1w' | '1M';
 
 export type IndicatorType = 'sma' | 'ema' | 'rsi' | 'macd' | 'bollinger' | 'volume' | 'atr' | 'stochastic' | 'cci' | 'williams';
 
@@ -110,4 +110,4 @@ export interface ChartIndicator {
   };
 }
 
-export type ViewType = 'dashboard' | 'analysis' | 'strategies' | 'alerts' | 'journal' | 'liveTrading' | 'portfolio' | 'risk' | 'backtest' | 'settings';
+export type ViewType = 'dashboard' | 'analysis' | 'strategies' | 'alerts' | 'journal' | 'liveTrading' | 'tradeHistory' | 'portfolio' | 'risk' | 'backtest' | 'settings' | 'widgetSettings' | 'tradingBot' | 'scanner' | 'futures';

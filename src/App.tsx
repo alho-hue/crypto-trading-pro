@@ -3,16 +3,22 @@ import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import TradingJournal from './components/TradingJournal';
 import LiveTrading from './components/LiveTrading';
+import TradeHistory from './components/TradeHistory';
+import TradingBot from './components/TradingBot';
 import RiskCalculator from './components/RiskCalculator';
 import TechnicalAnalysis from './components/TechnicalAnalysis';
 import Strategies from './components/Strategies';
 import Alerts from './components/Alerts';
 import Portfolio from './components/Portfolio';
+import CryptoScanner from './components/CryptoScanner';
+import FuturesTrading from './components/FuturesTrading';
 import Backtest from './components/Backtest';
 import Settings from './components/Settings';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { AIChatBot } from './components/AIChatBot';
 import InstallPrompt from './components/InstallPrompt';
+import OfflineIndicator from './components/OfflineIndicator';
+import WidgetSettings from './components/WidgetSettings';
 import { useCryptoStore } from './stores/cryptoStore';
 import { useBinanceWebSocket } from './hooks/useBinanceWebSocket';
 
@@ -45,6 +51,8 @@ function App() {
         return <TechnicalAnalysis />;
       case 'strategies':
         return <Strategies />;
+      case 'tradingBot':
+        return <TradingBot />;
       case 'alerts':
         return <Alerts />;
       case 'journal':
@@ -53,12 +61,20 @@ function App() {
         return <LiveTrading />;
       case 'portfolio':
         return <Portfolio />;
+      case 'scanner':
+        return <CryptoScanner />;
+      case 'futures':
+        return <FuturesTrading />;
+      case 'tradeHistory':
+        return <TradeHistory />;
       case 'risk':
         return <RiskCalculator />;
       case 'backtest':
         return <Backtest />;
       case 'settings':
         return <Settings />;
+      case 'widgetSettings':
+        return <WidgetSettings />;
       default:
         return <Dashboard />;
     }
@@ -66,6 +82,7 @@ function App() {
 
   return (
     <>
+      <OfflineIndicator />
       <Layout>
         <ErrorBoundary>
           {renderView()}
