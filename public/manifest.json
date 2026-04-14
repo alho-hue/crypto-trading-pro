@@ -4,10 +4,16 @@
   "description": "Application web professionnelle pour le trading de cryptomonnaies en temps réel avec analyses techniques, backtesting et signaux IA",
   "icons": [
     {
-      "src": "/vite.svg",
-      "type": "image/svg+xml",
-      "sizes": "any",
+      "src": "/wolf-ffomix.png",
+      "type": "image/png",
+      "sizes": "512x512",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/wolf-ffomix.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any"
     }
   ],
   "start_url": "/",
@@ -29,21 +35,21 @@
       "short_name": "Dashboard",
       "description": "Voir le tableau de bord principal",
       "url": "/",
-      "icons": [{ "src": "/vite.svg", "sizes": "any" }]
+      "icons": [{ "src": "/wolf-ffomix.png", "sizes": "192x192" }]
     },
     {
       "name": "Trading",
       "short_name": "Trading",
       "description": "Accéder au journal de trading",
       "url": "/journal",
-      "icons": [{ "src": "/vite.svg", "sizes": "any" }]
+      "icons": [{ "src": "/wolf-ffomix.png", "sizes": "192x192" }]
     },
     {
       "name": "Paramètres",
       "short_name": "Settings",
       "description": "Configurer l'application",
       "url": "/settings",
-      "icons": [{ "src": "/vite.svg", "sizes": "any" }]
+      "icons": [{ "src": "/wolf-ffomix.png", "sizes": "192x192" }]
     }
   ],
   "related_applications": [],
