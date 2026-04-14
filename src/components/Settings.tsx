@@ -1,8 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Key, Bell, Moon, Sun, Shield, Save, CheckCircle, ExternalLink } from 'lucide-react';
+import { Settings as SettingsIcon, Key, Bell, Moon, Sun, Shield, Save, CheckCircle, ExternalLink, Lock, AlertTriangle, Wallet } from 'lucide-react';
+import { getDecryptedKey, saveEncryptedKey, hasEncryptedKey, clearEncryptedKey } from '../utils/crypto';
+import { testAuthenticatedConnection, hasApiKey } from '../services/binanceApi';
 
 interface SettingsState {
   groqApiKey: string;
+  binanceApiKey: string;
+  binanceSecretKey: string;
+  enableRealTrading: boolean;
   theme: 'dark' | 'light';
   notifications: boolean;
   autoRefresh: boolean;
@@ -12,20 +17,32 @@ interface SettingsState {
 export default function Settings() {
   const [settings, setSettings] = useState<SettingsState>({
     groqApiKey: '',
+    binanceApiKey: '',
+    binanceSecretKey: '',
+    enableRealTrading: false,
     theme: 'dark',
     notifications: true,
     autoRefresh: true,
     refreshInterval: 3,
   });
   const [saved, setSaved] = useState(false);
-  const [apiStatus, setApiStatus] = useState<{ groq: boolean }>({ groq: false });
+  const [apiStatus, setApiStatus] = useState<{ groq: boolean; binance: boolean }>({ groq: false, binance: false });
+  const [testingBinance, setTestingBinance] = useState(false);
 
   // Load settings from localStorage on mount
   useEffect(() => {
     const savedSettings = localStorage.getItem('trading_settings');
+    const binanceKey = getDecryptedKey('binance_api_key');
+    const binanceSecret = getDecryptedKey('binance_secret_key');
+    
     if (savedSettings) {
       const parsed = JSON.parse(savedSettings);
-      setSettings(prev => ({ ...prev, ...parsed }));
+      setSettings(prev => ({ 
+        ...prev, 
+        ...parsed,
+        binanceApiKey: binanceKey || '',
+        binanceSecretKey: binanceSecret || '',
+      }));
       
       // Apply theme
       if (parsed.theme === 'light') {
@@ -39,6 +56,7 @@ export default function Settings() {
       // Check API keys
       setApiStatus({
         groq: !!parsed.groqApiKey && parsed.groqApiKey !== 'ta_cle_groq_ici',
+        binance: !!binanceKey && !!binanceSecret,
       });
     }
   }, []);
@@ -55,15 +73,52 @@ export default function Settings() {
   }, [settings.theme]);
 
   // Save settings
-  const saveSettings = () => {
-    localStorage.setItem('trading_settings', JSON.stringify(settings));
+  const saveSettings = async () => {
+    // Save non-sensitive settings
+    const { binanceApiKey, binanceSecretKey, ...publicSettings } = settings;
+    localStorage.setItem('trading_settings', JSON.stringify(publicSettings));
+    
+    // Encrypt and save API keys separately
+    if (binanceApiKey) {
+      saveEncryptedKey('binance_api_key', binanceApiKey);
+    }
+    if (binanceSecretKey) {
+      saveEncryptedKey('binance_secret_key', binanceSecretKey);
+    }
+    
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
     
     // Update API status
     setApiStatus({
       groq: !!settings.groqApiKey && settings.groqApiKey !== 'ta_cle_groq_ici',
+      binance: !!binanceApiKey && !!binanceSecretKey,
     });
+  };
+
+  // Test Binance connection with authentication
+  const testBinanceConnection = async () => {
+    setTestingBinance(true);
+    try {
+      // Sauvegarder d'abord les clés pour le test
+      if (settings.binanceApiKey) {
+        saveEncryptedKey('binance_api_key', settings.binanceApiKey);
+      }
+      if (settings.binanceSecretKey) {
+        saveEncryptedKey('binance_secret_key', settings.binanceSecretKey);
+      }
+      
+      const result = await testAuthenticatedConnection();
+      alert(result.message);
+      
+      if (result.success) {
+        setApiStatus(prev => ({ ...prev, binance: true }));
+      }
+    } catch (error) {
+      alert('Erreur de connexion');
+    } finally {
+      setTestingBinance(false);
+    }
   };
 
   const updateSetting = <K extends keyof SettingsState>(key: K, value: SettingsState[K]) => {
@@ -94,6 +149,89 @@ export default function Settings() {
             </>
           )}
         </button>
+      </div>
+
+      {/* TRADING RÉEL - Binance */}
+      <div className="crypto-card border-2 border-crypto-accent/30">
+        <div className="flex items-center gap-2 mb-4">
+          <Wallet className="w-5 h-5 text-crypto-accent" />
+          <h2 className="font-semibold text-crypto-accent">Trading Réel Binance</h2>
+          {apiStatus.binance && (
+            <span className="px-2 py-0.5 rounded text-xs bg-crypto-green/20 text-crypto-green">
+              Connecté
+            </span>
+          )}
+        </div>
+
+        <div className="bg-crypto-dark/50 rounded-lg p-4 mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span className="font-medium">Activer le trading réel</span>
+              <Lock className="w-4 h-4 text-crypto-accent" />
+            </div>
+            <button
+              onClick={() => updateSetting('enableRealTrading', !settings.enableRealTrading)}
+              className={`w-12 h-6 rounded-full transition-colors ${
+                settings.enableRealTrading ? 'bg-crypto-accent' : 'bg-crypto-dark'
+              }`}
+            >
+              <div className={`w-5 h-5 rounded-full bg-white transition-transform ${
+                settings.enableRealTrading ? 'translate-x-6' : 'translate-x-0.5'
+              }`} />
+            </button>
+          </div>
+          <p className="text-sm text-gray-400 mb-3">
+            ⚠️ Mode réel : exécute de vrais ordres sur Binance avec votre argent
+          </p>
+
+          {settings.enableRealTrading && (
+            <div className="space-y-3 border-t border-crypto-border pt-3">
+              <div className="flex items-center justify-between">
+                <span className="font-medium">API Key Binance</span>
+                <span className="text-xs text-crypto-accent flex items-center gap-1">
+                  <Lock className="w-3 h-3" />
+                  Chiffré
+                </span>
+              </div>
+              <input
+                type="password"
+                value={settings.binanceApiKey}
+                onChange={(e) => updateSetting('binanceApiKey', e.target.value)}
+                placeholder="Collez votre API Key Binance"
+                className="w-full bg-crypto-dark border border-crypto-border rounded-lg px-3 py-2"
+              />
+              <input
+                type="password"
+                value={settings.binanceSecretKey}
+                onChange={(e) => updateSetting('binanceSecretKey', e.target.value)}
+                placeholder="Collez votre Secret Key Binance"
+                className="w-full bg-crypto-dark border border-crypto-border rounded-lg px-3 py-2"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={testBinanceConnection}
+                  disabled={testingBinance || !settings.binanceApiKey || !settings.binanceSecretKey}
+                  className="flex-1 py-2 bg-crypto-blue/20 text-crypto-blue rounded-lg hover:bg-crypto-blue/30 transition-colors disabled:opacity-50 text-sm"
+                >
+                  {testingBinance ? 'Test...' : 'Tester connexion'}
+                </button>
+                <a
+                  href="https://www.binance.com/fr/my/settings/api-management"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="py-2 px-3 bg-crypto-dark text-gray-400 rounded-lg hover:text-white transition-colors text-sm flex items-center gap-1"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  Créer clé
+                </a>
+              </div>
+              <p className="text-xs text-gray-500">
+                <AlertTriangle className="w-3 h-3 inline mr-1" />
+                Données chiffrées AES-256. N'utilisez que des clés avec permission "Spot Trading".
+              </p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* API Keys Section */}

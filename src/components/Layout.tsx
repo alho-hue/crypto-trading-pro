@@ -12,11 +12,13 @@ import {
   History, 
   Settings,
   Menu,
-  X
+  X,
+  TrendingUp
 } from 'lucide-react';
 
 const navItems: { id: ViewType; label: string; icon: React.ElementType }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'liveTrading', label: 'Trading Réel', icon: TrendingUp },
   { id: 'analysis', label: 'Analyse', icon: LineChart },
   { id: 'strategies', label: 'Stratégies', icon: Bot },
   { id: 'alerts', label: 'Alertes', icon: Bell },

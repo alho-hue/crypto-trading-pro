@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import TradingJournal from './components/TradingJournal';
+import LiveTrading from './components/LiveTrading';
 import RiskCalculator from './components/RiskCalculator';
 import TechnicalAnalysis from './components/TechnicalAnalysis';
 import Strategies from './components/Strategies';
@@ -48,6 +49,8 @@ function App() {
         return <Alerts />;
       case 'journal':
         return <TradingJournal />;
+      case 'liveTrading':
+        return <LiveTrading />;
       case 'portfolio':
         return <Portfolio />;
       case 'risk':

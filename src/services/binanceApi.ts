@@ -1,19 +1,22 @@
 import CryptoJS from 'crypto-js';
+import { getDecryptedKey } from '../utils/crypto';
 
 // Utilise le proxy Netlify pour contourner CORS
 const BINANCE_API_URL = '/api/binance';
 
-// Les données de marché Binance sont publiques - pas besoin de clé API
-// Seules les opérations privées (trades, compte) nécessitent une clé
+// Récupère les clés API chiffrées
 const getBinanceApiKeys = () => {
   return {
-    apiKey: '',
-    secretKey: '',
+    apiKey: getDecryptedKey('binance_api_key') || '',
+    secretKey: getDecryptedKey('binance_secret_key') || '',
   };
 };
 
-// Vérifie si on a une clé API (désactivé - données publiques uniquement)
-const hasApiKey = () => false;
+// Vérifie si on a une clé API configurée
+const hasApiKey = () => {
+  const { apiKey, secretKey } = getBinanceApiKeys();
+  return !!(apiKey && secretKey);
+};
 
 // Génère la signature HMAC pour les requêtes signées
 function generateSignature(queryString: string): string {
@@ -151,13 +154,13 @@ export async function fetchMyTrades(symbol: string, limit: number = 500): Promis
   return await response.json();
 }
 
-// Vérifier la connectivité API
+// Vérifier la connectivité API (test public)
 export async function testApiConnection(): Promise<{ success: boolean; message: string }> {
   try {
     const response = await fetch(`${BINANCE_API_URL}/ping`);
     
     if (response.ok) {
-      return { success: true, message: 'Connecté à Binance' };
+      return { success: true, message: 'Connecté à Binance (mode public)' };
     }
     
     return { success: false, message: `Erreur HTTP ${response.status}` };
@@ -166,4 +169,66 @@ export async function testApiConnection(): Promise<{ success: boolean; message: 
   }
 }
 
-export { hasApiKey };
+// Tester la connexion avec clés API (authentifié)
+async function testAuthenticatedConnection(): Promise<{ success: boolean; message: string }> {
+  if (!hasApiKey()) {
+    return { success: false, message: 'Clés API non configurées' };
+  }
+  
+  try {
+    const { apiKey } = getBinanceApiKeys();
+    const timestamp = Date.now();
+    const queryString = `timestamp=${timestamp}`;
+    const signature = generateSignature(queryString);
+    
+    const response = await fetch(
+      `${BINANCE_API_URL}/account?${queryString}&signature=${signature}`,
+      { headers: getAuthHeaders() }
+    );
+    
+    if (response.ok) {
+      return { success: true, message: 'Clés API valides - Accès authentifié' };
+    }
+    
+    if (response.status === 401) {
+      return { success: false, message: 'Clés API invalides ou permissions insuffisantes' };
+    }
+    
+    return { success: false, message: `Erreur HTTP ${response.status}` };
+  } catch (error) {
+    return { success: false, message: 'Erreur de connexion authentifiée' };
+  }
+}
+
+// Récupérer le solde du compte
+async function fetchAccountBalance(): Promise<{ success: boolean; balances?: any[]; message?: string }> {
+  if (!hasApiKey()) {
+    return { success: false, message: 'Clés API non configurées' };
+  }
+  
+  try {
+    const timestamp = Date.now();
+    const queryString = `timestamp=${timestamp}`;
+    const signature = generateSignature(queryString);
+    
+    const response = await fetch(
+      `${BINANCE_API_URL}/account?${queryString}&signature=${signature}`,
+      { headers: getAuthHeaders() }
+    );
+    
+    if (response.ok) {
+      const data = await response.json();
+      // Filtrer les balances non nulles
+      const nonZeroBalances = data.balances?.filter((b: any) => 
+        parseFloat(b.free) > 0 || parseFloat(b.locked) > 0
+      );
+      return { success: true, balances: nonZeroBalances };
+    }
+    
+    return { success: false, message: `Erreur ${response.status}` };
+  } catch (error) {
+    return { success: false, message: 'Erreur de récupération du solde' };
+  }
+}
+
+export { hasApiKey, fetchAccountBalance, testAuthenticatedConnection };

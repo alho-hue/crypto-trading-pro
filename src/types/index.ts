@@ -110,4 +110,4 @@ export interface ChartIndicator {
   };
 }
 
-export type ViewType = 'dashboard' | 'analysis' | 'strategies' | 'alerts' | 'journal' | 'portfolio' | 'risk' | 'backtest' | 'settings';
+export type ViewType = 'dashboard' | 'analysis' | 'strategies' | 'alerts' | 'journal' | 'liveTrading' | 'portfolio' | 'risk' | 'backtest' | 'settings';
