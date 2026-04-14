@@ -8,7 +8,7 @@
 
 > Application de trading crypto professionnelle avec analyses techniques, backtesting et signaux IA en temps réel.
 
-![Crypto Trading Pro](./public/screenshot.png)
+<!-- Screenshot à ajouter plus tard : ![Crypto Trading Pro](./public/screenshot.png) -->
 
 ## Table des matières
 
