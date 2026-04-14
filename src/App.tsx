@@ -11,6 +11,7 @@ import Backtest from './components/Backtest';
 import Settings from './components/Settings';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { AIChatBot } from './components/AIChatBot';
+import InstallPrompt from './components/InstallPrompt';
 import { useCryptoStore } from './stores/cryptoStore';
 import { useBinanceWebSocket } from './hooks/useBinanceWebSocket';
 
@@ -68,6 +69,7 @@ function App() {
         </ErrorBoundary>
       </Layout>
       <AIChatBot />
+      <InstallPrompt />
     </>
   );
 }
