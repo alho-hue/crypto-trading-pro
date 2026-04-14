@@ -1,32 +1,19 @@
 import CryptoJS from 'crypto-js';
 
-const BINANCE_API_URL = '/api/binance'; // Proxy through Vite to bypass CORS
+// API Binance directe - pas besoin de proxy sur Netlify
+const BINANCE_API_URL = 'https://api.binance.com/api/v3';
 
-// Get API keys from user settings (localStorage) or fallback to env
+// Les données de marché Binance sont publiques - pas besoin de clé API
+// Seules les opérations privées (trades, compte) nécessitent une clé
 const getBinanceApiKeys = () => {
-  try {
-    const settings = localStorage.getItem('trading_settings');
-    if (settings) {
-      const parsed = JSON.parse(settings);
-      return {
-        apiKey: parsed.binanceApiKey || '',
-        secretKey: parsed.binanceSecretKey || '',
-      };
-    }
-  } catch (e) {
-    // Silent fail
-  }
   return {
-    apiKey: import.meta.env.VITE_BINANCE_API_KEY || '',
-    secretKey: import.meta.env.VITE_BINANCE_SECRET_KEY || '',
+    apiKey: '',
+    secretKey: '',
   };
 };
 
-// Vérifie si on a une clé API
-const hasApiKey = () => {
-  const { apiKey } = getBinanceApiKeys();
-  return apiKey && apiKey !== 'ta_cle_binance_ici';
-};
+// Vérifie si on a une clé API (désactivé - données publiques uniquement)
+const hasApiKey = () => false;
 
 // Génère la signature HMAC pour les requêtes signées
 function generateSignature(queryString: string): string {
@@ -167,16 +154,10 @@ export async function fetchMyTrades(symbol: string, limit: number = 500): Promis
 // Vérifier la connectivité API
 export async function testApiConnection(): Promise<{ success: boolean; message: string }> {
   try {
-    const response = await fetch(`${BINANCE_API_URL}/ping`, { 
-      method: 'GET',
-      headers: getPublicHeaders()
-    });
+    const response = await fetch(`${BINANCE_API_URL}/ping`);
     
     if (response.ok) {
-      if (hasApiKey()) {
-        return { success: true, message: 'Connecté avec clé API' };
-      }
-      return { success: true, message: 'Connecté (mode public)' };
+      return { success: true, message: 'Connecté à Binance' };
     }
     
     return { success: false, message: `Erreur HTTP ${response.status}` };

@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Key, Bell, Moon, Sun, Shield, Save, CheckCircle, AlertTriangle, ExternalLink } from 'lucide-react';
+import { Settings as SettingsIcon, Key, Bell, Moon, Sun, Shield, Save, CheckCircle, ExternalLink } from 'lucide-react';
 
 interface SettingsState {
-  binanceApiKey: string;
-  binanceSecretKey: string;
   groqApiKey: string;
   theme: 'dark' | 'light';
   notifications: boolean;
@@ -13,8 +11,6 @@ interface SettingsState {
 
 export default function Settings() {
   const [settings, setSettings] = useState<SettingsState>({
-    binanceApiKey: '',
-    binanceSecretKey: '',
     groqApiKey: '',
     theme: 'dark',
     notifications: true,
@@ -22,7 +18,7 @@ export default function Settings() {
     refreshInterval: 3,
   });
   const [saved, setSaved] = useState(false);
-  const [apiStatus, setApiStatus] = useState<{ binance: boolean; groq: boolean }>({ binance: false, groq: false });
+  const [apiStatus, setApiStatus] = useState<{ groq: boolean }>({ groq: false });
 
   // Load settings from localStorage on mount
   useEffect(() => {
@@ -42,7 +38,6 @@ export default function Settings() {
       
       // Check API keys
       setApiStatus({
-        binance: !!parsed.binanceApiKey && parsed.binanceApiKey !== 'ta_cle_binance_ici',
         groq: !!parsed.groqApiKey && parsed.groqApiKey !== 'ta_cle_groq_ici',
       });
     }
@@ -67,7 +62,6 @@ export default function Settings() {
     
     // Update API status
     setApiStatus({
-      binance: !!settings.binanceApiKey && settings.binanceApiKey !== 'ta_cle_binance_ici',
       groq: !!settings.groqApiKey && settings.groqApiKey !== 'ta_cle_groq_ici',
     });
   };
@@ -106,58 +100,10 @@ export default function Settings() {
       <div className="crypto-card">
         <div className="flex items-center gap-2 mb-4">
           <Key className="w-5 h-5 text-crypto-blue" />
-          <h2 className="font-semibold">Clés API</h2>
+          <h2 className="font-semibold">Configuration IA</h2>
         </div>
         
-        <div className="space-y-4">
-          {/* Binance API */}
-          <div className="bg-crypto-dark/50 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <span className="font-medium">Binance API</span>
-                <span className={`px-2 py-0.5 rounded text-xs ${
-                  apiStatus.binance ? 'bg-crypto-green/20 text-crypto-green' : 'bg-crypto-red/20 text-crypto-red'
-                }`}>
-                  {apiStatus.binance ? 'Connecté' : 'Non configuré'}
-                </span>
-              </div>
-              <a
-                href="https://www.binance.com/en/support/faq/how-to-create-api-keys-on-binance-360002502072"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-crypto-blue text-sm flex items-center gap-1 hover:underline"
-              >
-                <ExternalLink className="w-3 h-3" />
-                Guide
-              </a>
-            </div>
-            <p className="text-sm text-gray-400 mb-3">
-              Nécessaire pour les données en temps réel et l'historique des trades
-            </p>
-            <div className="space-y-2">
-              <input
-                type="password"
-                value={settings.binanceApiKey}
-                onChange={(e) => updateSetting('binanceApiKey', e.target.value)}
-                placeholder="API Key Binance"
-                className="w-full bg-crypto-dark border border-crypto-border rounded-lg px-3 py-2"
-              />
-              <input
-                type="password"
-                value={settings.binanceSecretKey}
-                onChange={(e) => updateSetting('binanceSecretKey', e.target.value)}
-                placeholder="Secret Key Binance"
-                className="w-full bg-crypto-dark border border-crypto-border rounded-lg px-3 py-2"
-              />
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              <AlertTriangle className="w-3 h-3 inline mr-1" />
-              Utilise uniquement la permission "Lecture" pour la sécurité
-            </p>
-          </div>
-
-          {/* Groq API */}
-          <div className="bg-crypto-dark/50 rounded-lg p-4">
+        <div className="bg-crypto-dark/50 rounded-lg p-4">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <span className="font-medium">Groq API (IA)</span>
@@ -188,7 +134,6 @@ export default function Settings() {
               className="w-full bg-crypto-dark border border-crypto-border rounded-lg px-3 py-2"
             />
           </div>
-        </div>
       </div>
 
       {/* Notifications */}
