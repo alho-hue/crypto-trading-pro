@@ -100,10 +100,8 @@ npm install
 Créer un fichier `.env.local` à la racine :
 
 ```env
-# API Configuration
-VITE_API_BASE_URL=https://api.binance.com
-VITE_API_KEY=votre_cle_api
-VITE_WS_URL=wss://stream.binance.com:9443/ws
+# API Configuration (valeurs à configurer dans Netlify)
+VITE_GROQ_API_KEY=votre_cle_groq_ici
 
 # Feature Flags
 VITE_ENABLE_AI_SIGNALS=true
@@ -285,7 +283,7 @@ L'application utilise l'API Binance pour les données de marché :
 | `GET /api/v3/klines` | Données historiques (candlesticks) |
 | `GET /api/v3/ticker/price` | Prix actuel |
 | `GET /api/v3/depth` | Carnet d'ordres |
-| `wss://stream.binance.com:9443/ws` | WebSocket temps réel |
+| `WebSocket` | Connexion temps réel |
 
 ### Limites de rate
 
