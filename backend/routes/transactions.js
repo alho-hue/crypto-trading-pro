@@ -5,12 +5,12 @@
 const express = require('express');
 const router = express.Router();
 const Transaction = require('../models/Transaction');
-const { authenticate } = require('../middleware/auth');
+const { authenticateToken } = require('../middleware/auth');
 
 /**
  * 🔐 Middleware auth pour toutes les routes
  */
-router.use(authenticate);
+router.use(authenticateToken);
 
 /**
  * 📊 GET /api/transactions - Liste des transactions de l'utilisateur
