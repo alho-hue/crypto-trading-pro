@@ -5,12 +5,13 @@
 const express = require('express');
 const router = express.Router();
 const adminAI = require('../services/adminAIService');
-const { authenticateAdmin } = require('../middleware/auth');
+const { requireRole, adminRateLimit } = require('../middleware/adminAuth');
 
 /**
  * 🔐 Middleware auth pour toutes les routes
  */
-router.use(authenticateAdmin);
+router.use(adminRateLimit);
+router.use(requireRole(['admin', 'super_admin']));
 
 /**
  * 📊 GET /api/admin/ai/analyze - Analyse complète de la plateforme
