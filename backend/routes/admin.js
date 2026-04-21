@@ -9,6 +9,7 @@ const {
   logAdminAction, 
   generateAdminToken 
 } = require('../middleware/adminAuth');
+const { authenticateToken } = require('../middleware/auth');
 const os = require('os');
 
 // Sous-routeurs
