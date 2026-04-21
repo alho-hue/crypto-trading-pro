@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: neurovest-backend
+    runtime: docker
+    rootDir: backend
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: MONGODB_URI
+        sync: false  # À configurer manuellement dans le dashboard
+      - key: JWT_SECRET
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
