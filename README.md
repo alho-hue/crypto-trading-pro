@@ -1,321 +1,368 @@
-# Crypto Trading Pro
+# NEUROVEST - Professional Crypto Trading Platform
 
-[![React](https://img.shields.io/badge/React-19.2.5-61DAFB?logo=react)](https://reactjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-6.0.2-3178C6?logo=typescript)](https://www.typescriptlang.org/)
-[![Vite](https://img.shields.io/badge/Vite-8.0.8-646CFF?logo=vite)](https://vitejs.dev/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.19-06B6D4?logo=tailwindcss)](https://tailwindcss.com/)
+[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?logo=typescript)](https://www.typescriptlang.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-18-339933?logo=node.js)](https://nodejs.org/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-6.0-47A248?logo=mongodb)](https://www.mongodb.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-> Application de trading crypto professionnelle avec analyses techniques, backtesting et signaux IA en temps réel.
+> **Production-ready crypto trading platform** with real-time market data, AI-powered signals, automated trading bots, and advanced risk management.
 
-<!-- Screenshot à ajouter plus tard : ![Crypto Trading Pro](./public/screenshot.png) -->
+## ✨ What's New (April 2026)
 
-## Table des matières
+### 🔥 Real-World Integrations Now Live
+- **Mobile Money Payments** - Direct integration with Orange Money, Wave, and MTN Mobile Money (XOF deposits/withdrawals)
+- **Real Binance Futures Trading** - Live leverage configuration, position tracking, and PnL calculation
+- **Real Trade History** - Direct sync with Binance API for complete trade history
+- **AI-Powered Trade Analysis** - EthernalAI analyzes every trade for performance insights
+- **Activity Logging** - Complete audit trail of all user actions
+- **Moderation System** - Full reporting, review, and resolution workflow
 
-- [Fonctionnalités](#fonctionnalités)
-- [Technologies](#technologies)
-- [Prérequis](#prérequis)
-- [Installation](#installation)
-- [Scripts disponibles](#scripts-disponibles)
-- [Structure du projet](#structure-du-projet)
-- [Configuration](#configuration)
-- [Déploiement](#déploiement)
-- [API Documentation](#api-documentation)
-- [Contributions](#contributions)
-- [License](#license)
+## 🚀 Key Features
 
-## Fonctionnalités
+### Real-Time Trading Engine
+- **Live market data** via Binance WebSocket API (Spot & Futures)
+- **Real trade execution** on Binance Spot & Futures with live leverage
+- **Real position tracking** with PnL calculation and liquidation monitoring
+- **Automated trading bot** with AI signals
+- **Paper trading mode** for safe testing
+- **Trailing stops** and advanced order types
+- **Real trade history sync** from Binance API
 
-### Dashboard en Temps Réel
-- **Prix temps réel** des principales cryptos (BTC, ETH, BNB, etc.)
-- **Variation 24h** avec code couleur (vert/rouge)
-- **Volume des dernières 24h**
-- **Top gagnants/perdants**
-- Système de **favoris** avec étoiles
-- **Alertes de prix** personnalisables
+### Advanced Analytics
+- **Multi-timeframe analysis** (15m, 1h, 4h, 1d)
+- **Technical indicators**: RSI, MACD, Bollinger Bands, ADX
+- **Kelly Criterion** position sizing
+- **Correlation analysis** for risk management
+- **Backtesting engine** with historical data
 
-### Analyse Technique
-- **Graphiques interactifs** (Candlestick, Line, Area, Histogram)
-- **Indicateurs techniques** :
-  - Moyennes mobiles (SMA, EMA)
-  - RSI (Relative Strength Index)
-  - MACD
-  - Bollinger Bands
-  - Volume Profile
+### Portfolio Management
+- **Real-time P&L tracking**
+- **Performance metrics**: Sharpe ratio, drawdown, win rate
+- **Automatic rebalancing**
+- **Diversification analysis**
+- **Trade history & journaling**
 
-### Intelligence Artificielle
-- **Signaux de trading IA** basés sur le machine learning
-- **Analyse de sentiment** du marché
-- **Prédictions de prix** à court terme
-- **Détection de patterns** automatique
+### Security & Compliance
+- **AES-256-GCM encryption** for API keys
+- **2FA TOTP** authentication
+- **IP whitelisting**
+- **JWT secure authentication**
+- **XSS protection** & input sanitization
+- **Activity audit logging** - Complete user action trail
+- **Moderation system** - Report, review, and resolve workflow
+- **Webhook signature verification** for payment security
 
-### Gestion de Portefeuille
-- **Suivi des positions** ouvertes
-- **Historique des trades**
-- **Calcul du P&L** en temps réel
-- **Simulation de trading** (paper trading)
+## 🛠️ Tech Stack
 
-### Mode Pro
-- **Backtesting avancé** avec stratégies personnalisables
-- **Export de données** CSV/Excel
-- **WebSocket temps réel** pour les mises à jour instantanées
-- **Notifications push** pour les alertes de prix
+### Frontend
+- **React 18** with TypeScript
+- **Vite** for fast development
+- **Tailwind CSS** for styling
+- **Zustand** for state management
+- **Socket.io-client** for real-time updates
+- **Lightweight Charts** for trading charts
+- **Lucide React** for icons
 
-## Technologies
+### Backend
+- **Node.js** with Express
+- **MongoDB** with Mongoose
+- **Socket.IO** for real-time communication
+- **Binance API** integration
+- **JWT** authentication
+- **Winston** logging
 
-- **Frontend** : React 19 + TypeScript 6
-- **Build Tool** : Vite 8
-- **Styling** : Tailwind CSS 3.4 + PostCSS
-- **State Management** : Zustand 5
-- **Charts** : Lightweight Charts 4
-- **Icons** : Lucide React
-- **HTTP Client** : Axios
-- **Crypto** : crypto-js
-- **Dates** : date-fns
-- **PWA** : Service Workers, Manifest
+### Security
+- **crypto-js** for client-side encryption
+- **speakeasy** for 2FA
+- **helmet** for HTTP security
+- **express-rate-limit** for DDoS protection
 
-## Prérequis
+## 📋 Prerequisites
 
-- Node.js 18+ (recommandé : 20 LTS)
-- npm 10+ ou yarn 1.22+
-- Git
+- **Node.js** 18+ 
+- **MongoDB** 6+ (local or Atlas)
+- **npm** 9+ or **yarn**
+- **Git**
 
-## Installation
+## 🚀 Quick Start
 
-### 1. Cloner le repository
-
-```bash
-git clone https://github.com/TON_USERNAME/crypto-trading-pro.git
-cd crypto-trading-pro
-```
-
-### 2. Installer les dépendances
+### 1. Clone & Install
 
 ```bash
+git clone https://github.com/yourusername/neurovest.git
+cd neurovest
+
+# Install frontend dependencies
 npm install
+
+# Install backend dependencies
+cd backend
+npm install
+cd ..
 ```
 
-### 3. Configuration des variables d'environnement
+### 2. Environment Configuration
 
-Créer un fichier `.env.local` à la racine :
+#### Backend (.env)
+```bash
+cd backend
+cp .env.example .env
+```
+
+Edit `.env` with your values:
+```env
+# Required
+MONGODB_URI=mongodb://localhost:27017/neurovest
+JWT_SECRET=your-super-secret-jwt-key-min-32-chars-here
+ENCRYPTION_KEY=your-64-char-hex-encryption-key-here
+
+# Binance (for real trading)
+BINANCE_API_KEY=your_binance_api_key
+BINANCE_API_SECRET=your_binance_api_secret
+BINANCE_TESTNET=true  # Set to false for production
+
+# Mobile Money APIs (for real deposits/withdrawals)
+# Orange Money
+ORANGE_MONEY_CLIENT_ID=your_orange_client_id
+ORANGE_MONEY_CLIENT_SECRET=your_orange_secret
+ORANGE_MONEY_MERCHANT_KEY=your_merchant_key
+ORANGE_MONEY_ENV=sandbox  # or production
+
+# Wave
+WAVE_API_KEY=your_wave_api_key
+WAVE_WEBHOOK_SECRET=your_wave_webhook_secret
+
+# MTN MoMo
+MTN_SUBSCRIPTION_KEY=your_mtn_key
+MTN_API_USER=your_mtn_user
+MTN_API_KEY=your_mtn_api_key
+
+# AI (Optional)
+GROQ_API_KEY=gsk_your_groq_key
+```
+
+**Generate encryption keys:**
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+#### Frontend (.env.local)
+```bash
+cp .env.example .env.local
+```
 
 ```env
-# API Configuration (valeurs à configurer dans Netlify)
-VITE_GROQ_API_KEY=votre_cle_groq_ici
-
-# Feature Flags
-VITE_ENABLE_AI_SIGNALS=true
-VITE_ENABLE_BACKTESTING=true
-VITE_ENABLE_PAPER_TRADING=true
-
-# App Configuration
-VITE_APP_NAME=Crypto Trading Pro
-VITE_APP_VERSION=1.0.0
+VITE_API_URL=http://localhost:5000
 ```
 
-### 4. Lancer l'application
+### 3. Start MongoDB
 
 ```bash
+# Using Docker
+docker run -d -p 27017:27017 --name neurovest-mongo mongo:6
+
+# Or using local MongoDB
+mongod --dbpath /path/to/data
+```
+
+### 4. Start the Application
+
+```bash
+# Terminal 1 - Backend
+cd backend
+npm start
+
+# Terminal 2 - Frontend (from root)
 npm run dev
 ```
 
-L'application sera disponible sur `http://localhost:5173`
+Visit `http://localhost:5173` 🎉
 
-## Scripts disponibles
+## 📖 API Documentation
 
-| Commande | Description |
-|----------|-------------|
-| `npm run dev` | Lance le serveur de développement avec HMR |
-| `npm run build` | Compile le projet pour la production |
-| `npm run preview` | Prévisualise la build de production |
-| `npm run type-check` | Vérifie les types TypeScript |
-
-## Structure du projet
-
-```
-crypto-trading-pro/
-├── public/                 # Assets statiques
-│   ├── vite.svg           # Logo
-│   ├── manifest.json      # PWA manifest
-│   └── sw.js              # Service Worker
-├── src/
-│   ├── components/        # Composants React réutilisables
-│   │   ├── Dashboard/     # Composants du dashboard
-│   │   ├── Charts/        # Composants de graphiques
-│   │   ├── Trading/       # Composants de trading
-│   │   └── UI/            # Composants UI génériques
-│   ├── hooks/             # Custom React hooks
-│   ├── stores/            # Zustand stores
-│   ├── services/          # Services API
-│   ├── utils/             # Fonctions utilitaires
-│   ├── types/             # Types TypeScript
-│   ├── styles/            # Fichiers CSS/Tailwind
-│   ├── App.tsx            # Composant racine
-│   └── main.tsx           # Point d'entrée
-├── docs/                  # Documentation
-├── .env                   # Variables d'environnement
-├── .gitignore             # Fichiers ignorés par Git
-├── index.html             # HTML template
-├── netlify.toml           # Config Netlify
-├── package.json           # Dépendances et scripts
-├── tsconfig.json          # Config TypeScript
-├── tailwind.config.js     # Config Tailwind
-├── postcss.config.js      # Config PostCSS
-└── vite.config.ts         # Config Vite
+### Authentication
+```http
+POST /api/auth/register
+POST /api/auth/login
+POST /api/auth/verify-2fa
 ```
 
-## Configuration
+### Trading Bot
+```http
+GET    /api/auto-trading/status
+POST   /api/auto-trading/enable
+POST   /api/auto-trading/disable
+POST   /api/auto-trading/paper-trading
+POST   /api/auto-trading/backtest
+GET    /api/auto-trading/trades         # AI-analyzed trades
+GET    /api/auto-trading/open-positions  # Real positions with PnL
+```
 
-### Tailwind CSS
+### Portfolio
+```http
+GET    /api/portfolio
+GET    /api/portfolio/performance
+GET    /api/portfolio/pnl
+POST   /api/portfolio/rebalancing/execute
+```
 
-Les couleurs personnalisées sont définies dans `tailwind.config.js` :
+### Wallet & Payments
+```http
+GET    /api/wallet/balance
+GET    /api/wallet/transactions
+POST   /api/wallet/withdraw
+POST   /api/mobile-money/deposit      # Real Orange/Wave/MTN
+POST   /api/mobile-money/withdrawal  # Real mobile money withdrawal
+GET    /api/mobile-money/status/:id
+```
 
+### Alerts
+```http
+GET    /api/alerts
+POST   /api/alerts
+DELETE /api/alerts/:id
+POST   /api/alerts/smart
+```
+
+### Security & Activity
+```http
+POST   /api/security/2fa/setup
+POST   /api/security/2fa/verify
+POST   /api/security/api-keys
+GET    /api/security/audit
+GET    /api/activity/recent            # Real activity history
+GET    /api/activity/stats             # Activity statistics
+```
+
+## 🔐 Security Checklist
+
+Before going to production:
+
+- [ ] Change default JWT_SECRET (min 32 chars)
+- [ ] Generate unique ENCRYPTION_KEY
+- [ ] Generate RSA key pair for API encryption
+- [ ] Enable 2FA for all admin accounts
+- [ ] Configure IP whitelisting
+- [ ] Set up MongoDB authentication
+- [ ] Enable HTTPS/WSS
+- [ ] Configure rate limiting
+- [ ] Set up monitoring & logging
+- [ ] Review CORS settings
+- [ ] Configure mobile money webhooks (Orange/Wave/MTN)
+- [ ] Set up SSL for webhook endpoints
+- [ ] Test real trading with small amounts first
+
+## 📊 Trading Bot Configuration
+
+### Paper Trading (Default)
 ```javascript
-colors: {
-  crypto: {
-    dark: '#0a0e1a',
-    darker: '#070a12',
-    card: '#111827',
-    accent: '#3b82f6',
-    success: '#10b981',
-    danger: '#ef4444',
-    warning: '#f59e0b',
-  }
+{
+  strategy: 'moderate',      // conservative | moderate | aggressive
+  symbols: ['BTC', 'ETH'],   // Trading pairs
+  maxRiskPerTrade: 2,        // % of capital per trade
+  paperTrading: true         // No real money used
 }
 ```
 
-### PWA Configuration
+### Real Trading
+1. Store encrypted API keys in Settings → Security
+2. Disable Paper Trading mode
+3. Set conservative risk parameters
+4. Enable 2FA
+5. Start with small amounts
 
-Le fichier `public/manifest.json` configure l'application comme PWA :
-
-- **Nom** : Crypto Trading Pro
-- **Icônes** : Multi-résolution (72x72 à 512x512)
-- **Theme Color** : #0a0e1a
-- **Display Mode** : Standalone
-- **Orientation** : Portrait
-
-## Déploiement
-
-### Sur Netlify (Recommandé)
-
-#### Étape 1 : Créer le repository GitHub
+## 🧪 Testing
 
 ```bash
-# Initialiser Git (si pas déjà fait)
-git init
+# Frontend tests
+npm run test
 
-# Ajouter tous les fichiers
-git add .
+# Backend tests
+cd backend
+npm test
 
-# Créer le premier commit
-git commit -m "Initial commit - Crypto Trading Pro v1.0"
-
-# Renommer la branche principale
-git branch -M main
-
-# Connecter au repository GitHub (remplace TON_USERNAME)
-git remote add origin https://github.com/TON_USERNAME/crypto-trading-pro.git
-
-# Pousser le code
-git push -u origin main
+# Integration tests
+npm run test:e2e
 ```
 
-#### Étape 2 : Déployer sur Netlify
+## 🚀 Deployment
 
-1. **Créer un compte** sur [netlify.com](https://netlify.com) (gratuit)
-2. **Connecter GitHub** : Cliquer sur "Add new site" → "Import an existing project"
-3. **Sélectionner le repository** `crypto-trading-pro`
-4. **Configuration du build** :
-   - Build command : `npm run build`
-   - Publish directory : `dist`
-5. **Variables d'environnement** : Ajouter dans Netlify → Site settings → Environment variables
-6. **Déployer** : Cliquer sur "Deploy site"
-
-#### Étape 3 : Configuration avancée Netlify
-
-Le fichier `netlify.toml` est déjà configuré :
-
-```toml
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-```
-
-Cette configuration permet le routing côté client (SPA).
-
-### Sur Vercel (Alternative)
-
+### Backend (Railway/Render/Heroku)
 ```bash
-# Installer Vercel CLI
-npm i -g vercel
-
-# Déployer
-vercel --prod
+# Set environment variables in dashboard
+# Deploy from GitHub
 ```
 
-### Sur GitHub Pages (Alternative)
-
+### Frontend (Vercel/Netlify)
 ```bash
-# Installer gh-pages
-npm install --save-dev gh-pages
+# Build
+npm run build
 
-# Dans package.json, ajouter :
-"homepage": "https://TON_USERNAME.github.io/crypto-trading-pro",
-"scripts": {
-  "predeploy": "npm run build",
-  "deploy": "gh-pages -d dist"
-}
-
-# Déployer
-npm run deploy
+# Or deploy directly from GitHub
 ```
 
-## API Documentation
+### Docker
+```bash
+docker-compose up -d
+```
 
-### Binance API (par défaut)
+## 📈 Performance Optimization
 
-L'application utilise l'API Binance pour les données de marché :
+- **Database indexing** on frequently queried fields (User, Activity, Reports)
+- **Redis caching** for market data
+- **CDN** for static assets
+- **Lazy loading** for routes
+- **WebSocket connection pooling**
+- **Activity aggregation** for fast statistics
+- **Trade analysis caching** for AI insights
 
-| Endpoint | Description |
-|----------|-------------|
-| `GET /api/v3/ticker/24hr` | Prix et variations 24h |
-| `GET /api/v3/klines` | Données historiques (candlesticks) |
-| `GET /api/v3/ticker/price` | Prix actuel |
-| `GET /api/v3/depth` | Carnet d'ordres |
-| `WebSocket` | Connexion temps réel |
+## 🐛 Troubleshooting
 
-### Limites de rate
+### Common Issues
 
-- **REST API** : 1200 requêtes/minute
-- **WebSocket** : 5 connexions simultanées max
+**MongoDB connection failed**
+```bash
+# Check MongoDB is running
+mongosh --eval "db.adminCommand('ping')"
+```
 
-## Contributions
+**Binance API errors**
+- Verify API keys have correct permissions
+- Check IP whitelist on Binance
+- Enable testnet for testing
 
-Les contributions sont les bienvenues !
+**WebSocket not connecting**
+- Check firewall settings
+- Verify CORS configuration
+- Check network connectivity
 
-1. **Fork** le repository
-2. **Créer une branche** : `git checkout -b feature/ma-fonctionnalite`
-3. **Commiter** : `git commit -m "Ajout de ma fonctionnalité"`
-4. **Pusher** : `git push origin feature/ma-fonctionnalite`
-5. **Créer une Pull Request**
+## 🤝 Contributing
 
-### Guidelines
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
 
-- Suivre le style de code TypeScript/ESLint
-- Ajouter des tests pour les nouvelles fonctionnalités
-- Mettre à jour la documentation si nécessaire
-- Respecter la structure du projet existante
+## 📄 License
 
-## License
+MIT License - see [LICENSE](LICENSE) file
 
-Ce projet est sous license MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
+## ⚠️ Disclaimer
+
+**Trading cryptocurrencies carries significant risk.** This software is for educational purposes. Always:
+- Start with paper trading
+- Never risk more than you can afford to lose
+- Do your own research
+- Consider consulting a financial advisor
+
+## 📞 Support
+
+- **Issues**: [GitHub Issues](https://github.com/yourusername/neurovest/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/yourusername/neurovest/discussions)
+- **Email**: support@neurovest.app
 
 ---
 
-<p align="center">
-  Développé avec ❤️ par <strong>alho-hue</strong>
-  <br>
-  <a href="https://github.com/alho-hue">GitHub</a> •
-  <a href="mailto:alhousseynid504@gmail.com">Email</a>
-</p>
+Built with ❤️ by the NEUROVEST Team

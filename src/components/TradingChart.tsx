@@ -6,6 +6,7 @@ import {
   SeriesType
 } from 'lightweight-charts';
 import { useCryptoStore } from '../stores/cryptoStore';
+import { ChartWatermark } from './Watermark';
 import { calculateSMA, calculateEMA, calculateBollingerBands, calculateRSI, calculateMACD } from '../utils/indicators';
 import { ZoomIn, ZoomOut, Maximize2, CandlestickChart, LineChart, BarChart3, Activity } from 'lucide-react';
 import type { Timeframe } from '../types';
@@ -695,6 +696,8 @@ export default function TradingChart() {
             </div>
           </div>
         )}
+        {/* NEUROVEST Chart Watermark */}
+        <ChartWatermark symbol={selectedSymbol} position="center" />
       </div>
     </div>
   );

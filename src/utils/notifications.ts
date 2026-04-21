@@ -24,28 +24,12 @@ export function sendNotification(title: string, options?: NotificationOptions): 
     return;
   }
 
-  // Utiliser le service worker pour les notifications si disponible
-  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-    navigator.serviceWorker.controller.postMessage({
-      type: 'SHOW_NOTIFICATION',
-      title,
-      options: {
-        ...options,
-        icon: '/wolf-ffomix.png',
-        badge: '/wolf-ffomix.png',
-        tag: 'crypto-trading-alert',
-        requireInteraction: true,
-        ...options,
-      },
-    });
-  } else {
-    // Fallback : notification directe
-    new Notification(title, {
-      ...options,
-      icon: '/wolf-ffomix.png',
-      badge: '/wolf-ffomix.png',
-    });
-  }
+  // Service worker désactivé - utiliser notification directe
+  new Notification(title, {
+    ...options,
+    icon: '/wolf-ffomix.png',
+    badge: '/wolf-ffomix.png',
+  });
 }
 
 // Notification spéciale pour alerte de prix

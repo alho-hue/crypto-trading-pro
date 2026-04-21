@@ -1,0 +1,133 @@
+{
+  "balance": 9789.662457999999,
+  "positions": [
+    {
+      "id": "DEMO_POS_1776654199487",
+      "symbol": "BTCUSDT",
+      "side": "BUY",
+      "size": 0.001,
+      "entryPrice": 45000,
+      "markPrice": 45000,
+      "leverage": 1,
+      "margin": 45,
+      "stopLoss": 72919.595,
+      "takeProfit": 77384.06,
+      "fees": 0.018000000000000002,
+      "openTime": 1776654199487,
+      "unrealizedPnl": -0.018000000000000002
+    },
+    {
+      "id": "DEMO_POS_1776654757583",
+      "symbol": "BTCUSDT",
+      "side": "SELL",
+      "size": 0.001,
+      "entryPrice": 45000,
+      "markPrice": 45000,
+      "leverage": 1,
+      "margin": 45,
+      "stopLoss": 75932.982,
+      "takeProfit": 71466.336,
+      "fees": 0.018000000000000002,
+      "openTime": 1776654757583,
+      "unrealizedPnl": -0.018000000000000002
+    },
+    {
+      "id": "DEMO_POS_1776669496033",
+      "symbol": "BTCUSDT",
+      "side": "SELL",
+      "size": 0.002649,
+      "entryPrice": 45000,
+      "markPrice": 45000,
+      "leverage": 1,
+      "margin": 119.205,
+      "stopLoss": 76304.9,
+      "takeProfit": 71816.38,
+      "fees": 0.047682,
+      "openTime": 1776669496033,
+      "unrealizedPnl": -0.047682
+    }
+  ],
+  "orders": [],
+  "trades": [
+    {
+      "id": "DEMO_TRADE_1776616383930",
+      "symbol": "BTCUSDT",
+      "side": "SELL",
+      "type": "MARKET",
+      "quantity": 0.026455,
+      "price": 45000,
+      "value": 1190.475,
+      "fees": 0.47619,
+      "timestamp": 1776616383930
+    },
+    {
+      "id": "DEMO_CLOSE_1776616392617",
+      "symbol": "BTCUSDT",
+      "side": "BUY",
+      "type": "MARKET",
+      "quantity": 0.026455,
+      "price": 45000,
+      "entryPrice": 45000,
+      "pnl": -0.47619,
+      "fees": 0.47619,
+      "timestamp": 1776616392617
+    },
+    {
+      "id": "DEMO_TRADE_1776633150642",
+      "symbol": "BTCUSDT",
+      "side": "SELL",
+      "type": "MARKET",
+      "quantity": 0.00268,
+      "price": 45000,
+      "value": 120.60000000000001,
+      "fees": 0.048240000000000005,
+      "timestamp": 1776633150642
+    },
+    {
+      "id": "DEMO_CLOSE_1776633162896",
+      "symbol": "BTCUSDT",
+      "side": "BUY",
+      "type": "MARKET",
+      "quantity": 0.00268,
+      "price": 45000,
+      "entryPrice": 45000,
+      "pnl": -0.048240000000000005,
+      "fees": 0.048240000000000005,
+      "timestamp": 1776633162896
+    },
+    {
+      "id": "DEMO_TRADE_1776654199487",
+      "symbol": "BTCUSDT",
+      "side": "BUY",
+      "type": "MARKET",
+      "quantity": 0.001,
+      "price": 45000,
+      "value": 45,
+      "fees": 0.018000000000000002,
+      "timestamp": 1776654199487
+    },
+    {
+      "id": "DEMO_TRADE_1776654757583",
+      "symbol": "BTCUSDT",
+      "side": "SELL",
+      "type": "MARKET",
+      "quantity": 0.001,
+      "price": 45000,
+      "value": 45,
+      "fees": 0.018000000000000002,
+      "timestamp": 1776654757583
+    },
+    {
+      "id": "DEMO_TRADE_1776669496033",
+      "symbol": "BTCUSDT",
+      "side": "SELL",
+      "type": "MARKET",
+      "quantity": 0.002649,
+      "price": 45000,
+      "value": 119.205,
+      "fees": 0.047682,
+      "timestamp": 1776669496033
+    }
+  ],
+  "createdAt": 1776616316865
+}

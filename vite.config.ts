@@ -6,11 +6,23 @@ export default defineConfig({
   server: {
     port: 3000,
     proxy: {
+      // Proxy /api/binance vers le backend (qui a les fallbacks Binance)
       '/api/binance': {
-        target: 'https://api.binance.com',
+        target: 'http://localhost:5000',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/binance/, '/api/v3'),
+      },
+      // Proxy API vers le backend local
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
       },
     },
+  },
+  build: {
+    // Augmenter la limite de taille des chunks
+    chunkSizeWarningLimit: 1000,
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'lucide-react', 'zustand'],
   },
 })

@@ -2,6 +2,18 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { CryptoPrice, CandleData, Trade, Alert, Timeframe, ViewType, ChartIndicator } from '../types';
 
+// Fonction pour obtenir l'ID utilisateur
+function getUserId(): string {
+  try {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      return user.id || user._id || 'guest';
+    }
+  } catch {}
+  return 'guest';
+}
+
 interface ApiStatus {
   connected: boolean;
   source: string;
@@ -148,7 +160,7 @@ export const useCryptoStore = create<CryptoState>()(
       },
     }),
     {
-      name: 'crypto-trading-storage',
+      name: `crypto-trading-storage-${getUserId()}`, // ISOLÉ PAR UTILISATEUR
       partialize: (state) => ({ 
         trades: state.trades, 
         alerts: state.alerts,
@@ -159,3 +171,6 @@ export const useCryptoStore = create<CryptoState>()(
     }
   )
 );
+
+// Export pour réinitialiser le store quand l'utilisateur change
+export const getStorageName = () => `crypto-trading-storage-${getUserId()}`;

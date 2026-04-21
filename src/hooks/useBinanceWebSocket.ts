@@ -1,9 +1,12 @@
+/**
+ * NEUROVEST - Binance WebSocket Hook (Production)
+ * Utilise le backend pour toutes les données (pas d'appels directs à Binance)
+ */
+
 import { useEffect, useCallback } from 'react';
 import { useCryptoStore } from '../stores/cryptoStore';
-import { fetchPrices as fetchBinancePrices, fetchKlines, testApiConnection } from '../services/binanceApi';
+import { fetchPrices as fetchBinancePrices, fetchKlines } from '../services/binanceApi';
 import type { CryptoPrice, CandleData } from '../types';
-
-const BINANCE_API_URL = 'https://api.binance.com/api/v3';
 
 export function useBinanceWebSocket() {
   const setPrice = useCryptoStore((state) => state.setPrice);
@@ -12,32 +15,37 @@ export function useBinanceWebSocket() {
   const timeframe = useCryptoStore((state) => state.timeframe);
   const setApiStatus = useCryptoStore((state) => state.setApiStatus);
 
-  // Fetch prices via REST API
+  // Fetch prices - APPEL DIRECT BINANCE
   const fetchPrices = useCallback(async () => {
-    const symbols = ['BTCUSDT', 'ETHUSDT', 'ADAUSDT', 'BNBUSDT', 'SOLUSDT', 'XRPUSDT'];
+    const symbols = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'ADAUSDT', 'XRPUSDT', 'DOTUSDT', 'DOGEUSDT', 'MATICUSDT', 'LINKUSDT', 'AVAXUSDT', 'ATOMUSDT', 'LTCUSDT', 'UNIUSDT', 'ETCUSDT'];
     
     try {
       const data = await fetchBinancePrices(symbols);
       
+      if (!Array.isArray(data)) {
+        throw new Error('Invalid response');
+      }
+      
       data.forEach((ticker: any) => {
+        if (!ticker?.symbol) return;
+        
         const price: CryptoPrice = {
           symbol: ticker.symbol,
-          price: parseFloat(ticker.lastPrice),
-          change24h: parseFloat(ticker.priceChangePercent),
-          change24hValue: parseFloat(ticker.priceChange),
-          volume24h: parseFloat(ticker.volume),
-          high24h: parseFloat(ticker.highPrice),
-          low24h: parseFloat(ticker.lowPrice),
-          lastUpdate: ticker.closeTime,
+          price: parseFloat(ticker.lastPrice || 0),
+          change24h: parseFloat(ticker.priceChangePercent || 0),
+          change24hValue: parseFloat(ticker.priceChange || 0),
+          volume24h: parseFloat(ticker.volume || 0),
+          high24h: parseFloat(ticker.highPrice || 0),
+          low24h: parseFloat(ticker.lowPrice || 0),
+          lastUpdate: ticker.closeTime || Date.now(),
         };
         setPrice(ticker.symbol, price);
       });
       
-      // Update API status
-      setApiStatus({ connected: true, source: 'binance-api' });
+      setApiStatus({ connected: true, source: 'binance' });
     } catch (error) {
-      // Silent fail
-      setApiStatus({ connected: false, source: 'error', error: 'API Binance indisponible' });
+      console.error('[Prices] Failed:', error);
+      setApiStatus({ connected: false, source: 'error', error: 'Failed' });
     }
   }, [setPrice, setApiStatus]);
 
@@ -57,21 +65,24 @@ export function useBinanceWebSocket() {
                       timeframe === '1h' ? '1h' : 
                       timeframe === '4h' ? '4h' : '1d';
       
-      const klineData = await fetchKlines(selectedSymbol, interval, 500);
+      const klineData = await fetchKlines(selectedSymbol, interval, 100);
       
-      const candles: CandleData[] = klineData.map((k: any[]) => ({
+      if (!Array.isArray(klineData) || klineData.length === 0) {
+        return; // Pas d'erreur, juste pas de données
+      }
+      
+      const candles: CandleData[] = klineData.map((k: any) => ({
         time: k[0] / 1000,
-        open: parseFloat(k[1]),
-        high: parseFloat(k[2]),
-        low: parseFloat(k[3]),
-        close: parseFloat(k[4]),
-        volume: parseFloat(k[5]),
+        open: parseFloat(k[1] || 0),
+        high: parseFloat(k[2] || 0),
+        low: parseFloat(k[3] || 0),
+        close: parseFloat(k[4] || 0),
+        volume: parseFloat(k[5] || 0),
       }));
       
       setCandleData(candles);
     } catch (error) {
-      // Silent fail
-      // Ne pas utiliser de mock - afficher l'erreur réelle
+      // Silencieux pour éviter le spam console
     }
   }, [selectedSymbol, timeframe, setCandleData]);
 

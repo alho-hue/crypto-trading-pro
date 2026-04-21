@@ -16,6 +16,7 @@ export default {
         'crypto-purple': '#8b5cf6',
         'crypto-orange': '#f59e0b',
         'crypto-pink': '#ec4899',
+        'neuro-bg': '#0a0e1a',
       },
     },
   },

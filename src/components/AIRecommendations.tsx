@@ -4,6 +4,7 @@ import { calculateRSI, calculateMACD, calculateSMA } from '../utils/indicators';
 import { FCFAConverter } from './FCFAConverter';
 import { TrendingUp, TrendingDown, Minus, Brain, AlertTriangle, Target, Shield, Loader2 } from 'lucide-react';
 import type { AISignal } from '../types';
+import { performAdvancedAnalysis, TechnicalAnalysis, formatAnalysisForDisplay } from '../services/advancedAnalysis';
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
@@ -42,6 +43,16 @@ export default function AIRecommendations() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<string>('');
+  const [advancedAnalysis, setAdvancedAnalysis] = useState<TechnicalAnalysis | null>(null);
+
+  // Perform advanced analysis whenever data changes
+  useEffect(() => {
+    const currentPrice = prices.get(selectedSymbol)?.price;
+    if (currentPrice && candleData.length >= 20) {
+      const analysis = performAdvancedAnalysis(selectedSymbol, currentPrice);
+      setAdvancedAnalysis(analysis);
+    }
+  }, [candleData, selectedSymbol, prices]);
 
   useEffect(() => {
     if (candleData.length < 50) {
@@ -321,20 +332,90 @@ Donne ta recommandation:`
         <span className="truncate">Analyse IA</span>
       </h2>
 
-      {/* Signal Direction */}
+      {/* Signal Direction avec Badges de Qualité PRO */}
       <div className={`p-3 sm:p-4 rounded-lg border mb-3 sm:mb-4 ${getDirectionColor()}`}>
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div className="flex-shrink-0">{getDirectionIcon()}</div>
             <div className="min-w-0">
               <div className="text-xl sm:text-2xl font-bold truncate">{getDirectionText()}</div>
-              <div className="text-xs sm:text-sm opacity-80 truncate">Signal IA • {signal.timeframe}</div>
+              <div className="flex items-center gap-1 mt-1">
+                <span className="text-xs opacity-80">Signal IA • {signal.timeframe}</span>
+                {/* Badge Qualité */}
+                {signal.confidence >= 85 && (
+                  <span className="px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 text-[10px] rounded border border-yellow-500/30">
+                    ⭐ PREMIUM
+                  </span>
+                )}
+                {signal.confidence >= 75 && signal.confidence < 85 && (
+                  <span className="px-1.5 py-0.5 bg-green-500/20 text-green-400 text-[10px] rounded border border-green-500/30">
+                    ✅ PRO
+                  </span>
+                )}
+                {signal.confidence < 60 && (
+                  <span className="px-1.5 py-0.5 bg-gray-500/20 text-gray-400 text-[10px] rounded border border-gray-500/30">
+                    ⚠️ FAIBLE
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           <div className="text-right flex-shrink-0">
             <div className="text-2xl sm:text-3xl font-bold">{signal.confidence}%</div>
-            <div className="text-xs sm:text-sm opacity-80">Confiance</div>
+            <div className="text-xs opacity-80">Confiance</div>
+            {/* Barre de qualité */}
+            <div className="w-20 h-1.5 bg-gray-700 rounded-full mt-1.5 overflow-hidden">
+              <div 
+                className={`h-full rounded-full ${
+                  signal.confidence >= 85 ? 'bg-gradient-to-r from-yellow-500 to-yellow-400' :
+                  signal.confidence >= 75 ? 'bg-gradient-to-r from-green-500 to-green-400' :
+                  signal.confidence >= 60 ? 'bg-gradient-to-r from-blue-500 to-blue-400' :
+                  'bg-gradient-to-r from-red-500 to-red-400'
+                }`}
+                style={{ width: `${signal.confidence}%` }}
+              />
+            </div>
           </div>
+        </div>
+        
+        {/* Indicateurs de fiabilité */}
+        <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-current border-opacity-10">
+          {/* Risk/Reward Badge */}
+          {(() => {
+            const rr = Math.abs((signal.takeProfit - signal.entryPrice) / (signal.stopLoss - signal.entryPrice));
+            return (
+              <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${
+                rr >= 2 ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                rr >= 1.5 ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
+                'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+              }`}>
+                R/R: 1:{rr.toFixed(1)}
+              </span>
+            );
+          })()}
+          
+          {/* Risk Level */}
+          <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${
+            signal.riskLevel === 'low' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+            signal.riskLevel === 'medium' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
+            'bg-red-500/20 text-red-400 border border-red-500/30'
+          }`}>
+            Risque: {signal.riskLevel === 'low' ? 'Faible' : signal.riskLevel === 'medium' ? 'Moyen' : 'Élevé'}
+          </span>
+          
+          {/* SL Distance */}
+          {(() => {
+            const slDist = Math.abs((signal.stopLoss - signal.entryPrice) / signal.entryPrice * 100);
+            return (
+              <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${
+                slDist <= 2 ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                slDist <= 3 ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
+                'bg-red-500/20 text-red-400 border border-red-500/30'
+              }`}>
+                SL: {slDist.toFixed(1)}%
+              </span>
+            );
+          })()}
         </div>
       </div>
 
@@ -378,9 +459,91 @@ Donne ta recommandation:`
         </div>
       </div>
 
+      {/* Advanced Analysis */}
+      {advancedAnalysis && advancedAnalysis.setup.confidence > 0 && (
+        <div className="bg-crypto-dark rounded-lg p-3 mb-3">
+          <div className="text-sm text-gray-400 mb-2 flex items-center gap-2">
+            <TrendingUp className="w-4 h-4" />
+            Analyse Avancée (Tendance + Zone + Bougie)
+          </div>
+          
+          {/* Trend */}
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-sm text-gray-400">Tendance:</span>
+            <span className={`font-medium ${
+              advancedAnalysis.trend === 'HAUSSIERE' ? 'text-crypto-green' : 
+              advancedAnalysis.trend === 'BAISSIERE' ? 'text-crypto-red' : 'text-gray-400'
+            }`}>
+              {advancedAnalysis.trend} ({advancedAnalysis.trendStrength}%)
+            </span>
+          </div>
+          
+          {/* Patterns */}
+          {advancedAnalysis.candlePatterns.length > 0 && (
+            <div className="mb-2">
+              <span className="text-sm text-gray-400">Patterns:</span>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {advancedAnalysis.candlePatterns.map((p, i) => (
+                  <span key={i} className={`text-xs px-2 py-0.5 rounded ${
+                    p.type === 'bullish' ? 'bg-crypto-green/20 text-crypto-green' :
+                    p.type === 'bearish' ? 'bg-crypto-red/20 text-crypto-red' :
+                    'bg-gray-500/20 text-gray-400'
+                  }`}>
+                    {p.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Indicators */}
+          <div className="grid grid-cols-3 gap-2 text-xs">
+            <div>
+              <span className="text-gray-500">RSI:</span>
+              <div className="font-mono">{advancedAnalysis.indicators.rsi?.toFixed(1) || 'N/A'}</div>
+            </div>
+            <div>
+              <span className="text-gray-500">Vol:</span>
+              <div className="font-mono">{advancedAnalysis.indicators.volatility}</div>
+            </div>
+            <div>
+              <span className="text-gray-500">Vol Trend:</span>
+              <div className="font-mono">{advancedAnalysis.indicators.volumeTrend}</div>
+            </div>
+          </div>
+          
+          {/* Setup */}
+          {advancedAnalysis.setup.direction !== 'NEUTRAL' && (
+            <div className="mt-3 pt-3 border-t border-gray-700">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">Setup {advancedAnalysis.setup.direction}</span>
+                <span className={`text-sm font-bold ${
+                  advancedAnalysis.setup.confidence > 60 ? 'text-crypto-green' : 'text-yellow-500'
+                }`}>
+                  {advancedAnalysis.setup.confidence}% confiance
+                </span>
+              </div>
+              {advancedAnalysis.setup.riskReward && (
+                <div className="text-xs text-gray-400 mb-2">
+                  Risk/Reward: 1:{advancedAnalysis.setup.riskReward.toFixed(1)}
+                </div>
+              )}
+              <div className="text-xs space-y-1">
+                {advancedAnalysis.setup.confirmations.slice(0, 3).map((c, i) => (
+                  <div key={i} className="flex items-center gap-1">
+                    <span className="text-crypto-green">✓</span>
+                    <span className="text-gray-300">{c}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Explanation */}
       <div className="bg-crypto-dark rounded-lg p-3">
-        <div className="text-sm text-gray-400 mb-2">Analyse technique :</div>
+        <div className="text-sm text-gray-400 mb-2">Analyse IA:</div>
         <div className="text-sm text-white leading-relaxed">
           {signal.explanation || 'Analyse basée sur les indicateurs techniques'}
         </div>

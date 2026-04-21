@@ -1,8 +1,11 @@
 import CryptoJS from 'crypto-js';
 import { getDecryptedKey } from '../utils/crypto';
 
-// Utilise le proxy Netlify pour contourner CORS
-const BINANCE_API_URL = '/api/binance';
+// Backend API URL
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+// Utilise le proxy backend pour contourner CORS
+const BINANCE_API_URL = `${API_URL}/api/binance`;
 
 // Récupère les clés API chiffrées
 const getBinanceApiKeys = () => {
@@ -45,113 +48,121 @@ function getAuthHeaders(): Record<string, string> {
   return headers;
 }
 
-// Prix en temps réel (public)
+// Prix en temps réel - APPEL DIRECT BINANCE (backend optionnel)
 export async function fetchPrices(symbols: string[]): Promise<any[]> {
-  try {
-    const response = await fetch(
-      `${BINANCE_API_URL}/ticker/24hr?symbols=[${symbols.map(s => `"${s}"`).join(',')}]`,
-      { headers: getPublicHeaders() }
-    );
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-    
-    return await response.json();
-  } catch (error) {
-    throw error;
+  // Appel direct à Binance - plus fiable que backend local
+  const response = await fetch(
+    `https://api.binance.com/api/v3/ticker/24hr?symbols=[${symbols.map(s => `"${s}"`).join(',')}]`,
+    { headers: getPublicHeaders() }
+  );
+  
+  if (!response.ok) {
+    throw new Error(`Binance HTTP ${response.status}`);
   }
+  
+  return await response.json();
 }
 
-// Données de bougies (public)
+// Données de bougies - APPEL DIRECT BINANCE
 export async function fetchKlines(
   symbol: string, 
   interval: string, 
   limit: number = 500
 ): Promise<any[]> {
-  try {
-    const response = await fetch(
-      `${BINANCE_API_URL}/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`,
-      { headers: getPublicHeaders() }
-    );
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-    
-    return await response.json();
-  } catch (error) {
-    throw error;
+  const response = await fetch(
+    `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`,
+    { headers: getPublicHeaders() }
+  );
+  
+  if (!response.ok) {
+    throw new Error(`Binance HTTP ${response.status}`);
   }
+  
+  return await response.json();
 }
 
-// Profil utilisateur (nécessite API key)
+// Profil utilisateur (nécessite API key + JWT auth)
 export async function fetchAccountInfo(): Promise<any> {
   if (!hasApiKey()) {
     throw new Error('API Key required');
   }
-  
-  const timestamp = Date.now();
-  const queryString = `timestamp=${timestamp}`;
-  const signature = generateSignature(queryString);
-  
-  const response = await fetch(
-    `${BINANCE_API_URL}/account?${queryString}&signature=${signature}`,
-    { headers: getAuthHeaders() }
-  );
-  
+
+  const token = localStorage.getItem('token');
+  if (!token) {
+    throw new Error('JWT token required');
+  }
+
+  const { apiKey, secretKey } = getBinanceApiKeys();
+
+  // 🔥 Utiliser POST /account avec JWT + clés API dans le body
+  const response = await fetch(`${BINANCE_API_URL}/account`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({ apiKey, secretKey })
+  });
+
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}`);
   }
-  
+
   return await response.json();
 }
 
-// Ordres ouverts (nécessite API key)
+// Ordres ouverts (nécessite API key + JWT auth)
 export async function fetchOpenOrders(symbol?: string): Promise<any[]> {
   if (!hasApiKey()) {
     throw new Error('API Key required');
   }
-  
-  const timestamp = Date.now();
-  let queryString = `timestamp=${timestamp}`;
-  if (symbol) {
-    queryString += `&symbol=${symbol}`;
+
+  const token = localStorage.getItem('token');
+  if (!token) {
+    throw new Error('JWT token required');
   }
-  const signature = generateSignature(queryString);
-  
-  const response = await fetch(
-    `${BINANCE_API_URL}/openOrders?${queryString}&signature=${signature}`,
-    { headers: getAuthHeaders() }
-  );
-  
+
+  const { apiKey, secretKey } = getBinanceApiKeys();
+
+  const response = await fetch(`${BINANCE_API_URL}/orders/open${symbol ? `?symbol=${symbol}` : ''}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}`);
   }
-  
-  return await response.json();
+
+  const data = await response.json();
+  return data.orders || [];
 }
 
-// Historique des trades (nécessite API key)
+// Historique des trades (nécessite API key + JWT auth)
 export async function fetchMyTrades(symbol: string, limit: number = 500): Promise<any[]> {
   if (!hasApiKey()) {
     throw new Error('API Key required');
   }
-  
-  const timestamp = Date.now();
-  const queryString = `symbol=${symbol}&limit=${limit}&timestamp=${timestamp}`;
-  const signature = generateSignature(queryString);
-  
-  const response = await fetch(
-    `${BINANCE_API_URL}/myTrades?${queryString}&signature=${signature}`,
-    { headers: getAuthHeaders() }
-  );
-  
+
+  const token = localStorage.getItem('token');
+  if (!token) {
+    throw new Error('JWT token required');
+  }
+
+  const response = await fetch(`${BINANCE_API_URL}/orders/history?symbol=${symbol}&limit=${limit}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}`);
   }
-  
-  return await response.json();
+
+  const data = await response.json();
+  return data.orders || [];
 }
 
 // Vérifier la connectivité API (test public)
@@ -176,58 +187,71 @@ async function testAuthenticatedConnection(): Promise<{ success: boolean; messag
   }
   
   try {
-    const { apiKey } = getBinanceApiKeys();
-    const timestamp = Date.now();
-    const queryString = `timestamp=${timestamp}`;
-    const signature = generateSignature(queryString);
+    const { apiKey, secretKey } = getBinanceApiKeys();
+    const token = localStorage.getItem('token');
     
-    const response = await fetch(
-      `${BINANCE_API_URL}/account?${queryString}&signature=${signature}`,
-      { headers: getAuthHeaders() }
-    );
+    // 🔥 Envoyer les clés au backend via POST (plus sécurisé)
+    const response = await fetch(`${BINANCE_API_URL}/account`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ apiKey, secretKey })
+    });
     
     if (response.ok) {
       return { success: true, message: 'Clés API valides - Accès authentifié' };
     }
     
-    if (response.status === 401) {
+    const error = await response.json();
+    if (response.status === 401 || error.error?.includes('API key')) {
       return { success: false, message: 'Clés API invalides ou permissions insuffisantes' };
     }
     
-    return { success: false, message: `Erreur HTTP ${response.status}` };
+    return { success: false, message: error.error || `Erreur HTTP ${response.status}` };
   } catch (error) {
     return { success: false, message: 'Erreur de connexion authentifiée' };
   }
 }
 
-// Récupérer le solde du compte
-async function fetchAccountBalance(): Promise<{ success: boolean; balances?: any[]; message?: string }> {
-  if (!hasApiKey()) {
-    return { success: false, message: 'Clés API non configurées' };
-  }
-  
+// Helper to get auth token from localStorage
+function getAuthToken(): string | null {
+  const token = localStorage.getItem('token');
+  return token;
+}
+
+// Récupérer le solde du compte via backend
+async function fetchAccountBalance(): Promise<{ success: boolean; balances?: any[]; message?: string; demoMode?: boolean }> {
   try {
-    const timestamp = Date.now();
-    const queryString = `timestamp=${timestamp}`;
-    const signature = generateSignature(queryString);
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/api/binance/account`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
     
-    const response = await fetch(
-      `${BINANCE_API_URL}/account?${queryString}&signature=${signature}`,
-      { headers: getAuthHeaders() }
-    );
-    
-    if (response.ok) {
-      const data = await response.json();
-      // Filtrer les balances non nulles
-      const nonZeroBalances = data.balances?.filter((b: any) => 
-        parseFloat(b.free) > 0 || parseFloat(b.locked) > 0
-      );
-      return { success: true, balances: nonZeroBalances };
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || `Erreur ${response.status}`);
     }
     
-    return { success: false, message: `Erreur ${response.status}` };
-  } catch (error) {
-    return { success: false, message: 'Erreur de récupération du solde' };
+    const data = await response.json();
+    
+    // Check if in demo mode
+    if (data.demoMode) {
+      return { 
+        success: true, 
+        balances: data.balances,
+        demoMode: true,
+        message: data.message
+      };
+    }
+    
+    return { success: true, balances: data.balances };
+  } catch (error: any) {
+    return { success: false, message: error.message };
   }
 }
 

@@ -1,0 +1,393 @@
+/* =============================================================================
+   NEUROVEST WATERMARK SYSTEM - Styles complémentaires
+   Styles CSS avancés pour le système de watermark
+   ============================================================================= */
+
+/* ---------------------------------------------------------------------------
+   Watermark globale - Pattern avancé
+   --------------------------------------------------------------------------- */
+
+.watermark-pattern {
+  background-image: 
+    repeating-linear-gradient(
+      -20deg,
+      transparent,
+      transparent 300px,
+      rgba(148, 163, 184, 0.008) 300px,
+      rgba(148, 163, 184, 0.008) 600px
+    ),
+    repeating-linear-gradient(
+      20deg,
+      transparent,
+      transparent 400px,
+      rgba(59, 130, 246, 0.005) 400px,
+      rgba(59, 130, 246, 0.005) 800px
+    );
+  background-size: 100% 100%;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Watermark texte avec effet subtil
+   --------------------------------------------------------------------------- */
+
+.watermark-text {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-weight: 900;
+  letter-spacing: 0.5em;
+  color: rgba(148, 163, 184, 0.04);
+  text-shadow: 
+    0 0 60px rgba(148, 163, 184, 0.03),
+    0 0 120px rgba(59, 130, 246, 0.02);
+  transform: rotate(-20deg);
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Variante pour mode sombre */
+.watermark-text-dark {
+  color: rgba(148, 163, 184, 0.05);
+  text-shadow: 
+    0 0 80px rgba(148, 163, 184, 0.04),
+    0 0 160px rgba(59, 130, 246, 0.03);
+}
+
+/* ---------------------------------------------------------------------------
+   Watermark utilisateur (anti-leak)
+   --------------------------------------------------------------------------- */
+
+.watermark-user {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: rgba(148, 163, 184, 0.12);
+  mix-blend-mode: difference;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  text-transform: uppercase;
+}
+
+/* Position discrète */
+.watermark-user-corner {
+  position: fixed;
+  bottom: 8px;
+  right: 8px;
+  z-index: 100;
+}
+
+/* Position alternative */
+.watermark-user-alt {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 100;
+  opacity: 0.06;
+}
+
+/* ---------------------------------------------------------------------------
+   Watermark pour charts
+   --------------------------------------------------------------------------- */
+
+.watermark-chart {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.watermark-chart-text {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: clamp(2rem, 5vw, 4rem);
+  font-weight: 800;
+  letter-spacing: 0.3em;
+  color: rgba(148, 163, 184, 0.035);
+  text-transform: uppercase;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.watermark-chart-symbol {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  color: rgba(148, 163, 184, 0.05);
+  text-transform: uppercase;
+  margin-top: 0.5rem;
+}
+
+/* ---------------------------------------------------------------------------
+   Watermark dynamique (animation lente)
+   --------------------------------------------------------------------------- */
+
+@keyframes watermark-float {
+  0%, 100% {
+    transform: translate(-50%, -50%) rotate(-15deg) translateX(0);
+  }
+  25% {
+    transform: translate(-50%, -50%) rotate(-15deg) translateX(10px);
+  }
+  75% {
+    transform: translate(-50%, -50%) rotate(-15deg) translateX(-10px);
+  }
+}
+
+.watermark-dynamic {
+  animation: watermark-float 60s ease-in-out infinite;
+  transition: opacity 5s ease-in-out;
+}
+
+/* Animation de changement de position (30s) */
+@keyframes watermark-shift {
+  0% {
+    left: 50%;
+    top: 50%;
+  }
+  16.67% {
+    left: 45%;
+    top: 48%;
+  }
+  33.33% {
+    left: 55%;
+    top: 52%;
+  }
+  50% {
+    left: 48%;
+    top: 55%;
+  }
+  66.67% {
+    left: 52%;
+    top: 45%;
+  }
+  83.33% {
+    left: 40%;
+    top: 50%;
+  }
+  100% {
+    left: 50%;
+    top: 50%;
+  }
+}
+
+.watermark-position-shift {
+  animation: watermark-shift 180s ease-in-out infinite;
+}
+
+/* ---------------------------------------------------------------------------
+   Watermark pour exports (PDF, screenshots)
+   --------------------------------------------------------------------------- */
+
+.watermark-export {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(11, 17, 32, 0.02);
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.watermark-export-text {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: clamp(3rem, 8vw, 6rem);
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  color: rgba(148, 163, 184, 0.08);
+  text-transform: uppercase;
+  transform: rotate(-12deg);
+  text-shadow: 0 0 60px rgba(148, 163, 184, 0.05);
+}
+
+.watermark-export-meta {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(51, 65, 85, 0.5);
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: rgba(148, 163, 184, 0.6);
+  letter-spacing: 0.05em;
+}
+
+/* ---------------------------------------------------------------------------
+   Watermark mobile (responsive)
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 768px) {
+  .watermark-text {
+    font-size: 15vw;
+    letter-spacing: 0.2em;
+    opacity: 0.025;
+  }
+  
+  .watermark-chart-text {
+    font-size: 2rem;
+    letter-spacing: 0.15em;
+    opacity: 0.025;
+  }
+  
+  .watermark-user {
+    font-size: 8px;
+    letter-spacing: 0.1em;
+    opacity: 0.08;
+  }
+  
+  .watermark-user-corner {
+    bottom: 4px;
+    right: 4px;
+  }
+  
+  /* Pattern plus léger sur mobile */
+  .watermark-pattern {
+    background-image: 
+      repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 150px,
+        rgba(148, 163, 184, 0.005) 150px,
+        rgba(148, 163, 184, 0.005) 151px
+      );
+  }
+}
+
+/* Très petits écrans */
+@media (max-width: 480px) {
+  .watermark-text {
+    font-size: 20vw;
+    opacity: 0.02;
+  }
+  
+  .watermark-user {
+    font-size: 7px;
+    opacity: 0.05;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Watermark avec effet de "bruit" subtil (anti-screenshot)
+   --------------------------------------------------------------------------- */
+
+.watermark-noise {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.02;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* ---------------------------------------------------------------------------
+   Protection contre la sélection et le drag
+   --------------------------------------------------------------------------- */
+
+.watermark-protected {
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Watermark avec gradient subtil
+   --------------------------------------------------------------------------- */
+
+.watermark-gradient {
+  background: 
+    radial-gradient(
+      ellipse 80% 50% at 50% 50%,
+      rgba(59, 130, 246, 0.02) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse 60% 40% at 30% 70%,
+      rgba(139, 92, 246, 0.015) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse 50% 30% at 70% 30%,
+      rgba(14, 165, 233, 0.01) 0%,
+      transparent 50%
+    );
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Classes utilitaires pour intégration facile
+   --------------------------------------------------------------------------- */
+
+/* Conteneur avec watermark intégrée */
+.has-watermark {
+  position: relative;
+}
+
+.has-watermark::before {
+  content: 'NEUROVEST';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 4rem;
+  font-weight: 900;
+  letter-spacing: 0.3em;
+  color: rgba(148, 163, 184, 0.03);
+  text-transform: uppercase;
+  transform: rotate(-20deg);
+  pointer-events: none;
+  z-index: 5;
+  user-select: none;
+}
+
+/* Conteneur avec watermark utilisateur */
+.has-user-watermark::after {
+  content: attr(data-username);
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: rgba(148, 163, 184, 0.1);
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* ---------------------------------------------------------------------------
+   Print styles (pour exports PDF)
+   --------------------------------------------------------------------------- */
+
+@media print {
+  .watermark-print {
+    display: block !important;
+    opacity: 0.15 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .watermark-print-text {
+    font-size: 3rem !important;
+    color: rgba(100, 116, 139, 0.2) !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Mode haute densité de pixels (Retina)
+   --------------------------------------------------------------------------- */
+
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .watermark-text {
+    text-shadow: 
+      0 0 40px rgba(148, 163, 184, 0.02),
+      0 0 80px rgba(59, 130, 246, 0.015);
+  }
+}
