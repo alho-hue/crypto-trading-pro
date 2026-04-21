@@ -90,6 +90,16 @@ app.use('/api/ethernal', require('./routes/ethernal')); // IA Ethernal intellige
 app.use('/api/social', require('./routes/social')); // Routes sociales (signaux, trades, follow)
 app.use('/api/transactions', require('./routes/transactions')); // Gestion transactions financières
 
+// === HEALTH CHECK (pour UptimeRobot et monitoring) ===
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    service: 'neurovest-backend'
+  });
+});
+
 // === ENDPOINT PRIX TEMPS RÉEL ===
 app.get('/api/prices', async (req, res) => {
   try {
