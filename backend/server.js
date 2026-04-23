@@ -19,17 +19,35 @@ const { Server } = require('socket.io');
 const app = express();
 const httpServer = createServer(app);
 
-// CORS - Accept all origins in development
+// CORS - Configuration sécurisée pour production
+const allowedOrigins = [
+  'https://trade.neurovest.workers.dev',  // Cloudflare production
+  'https://neurovest.pages.dev',          // Ancien domaine Cloudflare
+  'http://localhost:3000',                // Dev local
+  'http://localhost:5173',                // Vite dev
+  'http://localhost:4173'                 // Vite preview
+];
+
 const corsOptions = {
-  origin: true, // Allow all origins
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      console.warn(`[CORS] Requête bloquée de: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: [
     'Content-Type', 
     'Authorization',
-    'X-MBX-APIKEY',        // 🔥 Header API Binance
-    'x-mbx-apikey',        // 🔥 Header API Binance (lowercase)
-    'X-Binance-Secret',    // 🔥 Pour extensions
+    'X-MBX-APIKEY',
+    'x-mbx-apikey',
+    'X-Binance-Secret',
     'x-binance-secret'
   ]
 };
@@ -44,19 +62,30 @@ app.set('io', io);
 // Static files for uploads (avant helmet pour éviter les restrictions)
 app.use('/uploads', express.static(uploadsDir));
 
-// Security middleware
+// Security middleware - Helmet avec configuration production
 app.use(helmet({
-  contentSecurityPolicy: false, // Désactiver CSP pour autoriser les images cross-origin
-  crossOriginResourcePolicy: false // Désactiver CORP pour autoriser l'accès aux uploads
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      connectSrc: ["'self'", "wss:", "https:"],
+      imgSrc: ["'self'", "data:", "https:"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+    },
+  },
+  crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 app.use(cors(corsOptions));
 
-// Rate limiting - disabled for development
+// Rate limiting - Actif en production
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10000 // limit each IP to 10000 requests per windowMs (increased for dev)
+  max: process.env.NODE_ENV === 'production' ? 100 : 1000, // 100 req/15min en prod, 1000 en dev
+  message: { error: 'Too many requests, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false
 });
-// app.use(limiter); // Disabled for development
+app.use(limiter);
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
