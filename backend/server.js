@@ -19,10 +19,10 @@ const { Server } = require('socket.io');
 const app = express();
 const httpServer = createServer(app);
 
-// CORS - Configuration sécurisée pour production
+// CORS - Configuration sécurisée pour production (Cloudflare uniquement)
 const allowedOrigins = [
-  'https://trade.neurovest.workers.dev',  // Cloudflare production
-  'https://neurovest.pages.dev',          // Ancien domaine Cloudflare
+  'https://trade.neurovest.workers.dev',  // Cloudflare principal
+  'https://neurovest.pages.dev',          // Domaine alternatif Cloudflare
   'http://localhost:3000',                // Dev local
   'http://localhost:5173',                // Vite dev
   'http://localhost:4173'                 // Vite preview
