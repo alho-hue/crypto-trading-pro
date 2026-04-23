@@ -148,7 +148,7 @@ router.post('/messages', async (req, res) => {
     }
 
     const message = new AdminMessage({
-      senderId: req.user._id,
+      senderId: req.user._id || req.user.id || req.user.userId,
       senderUsername: req.user.email || req.user.username,
       senderRole: req.user.role,
       content: content.trim(),
