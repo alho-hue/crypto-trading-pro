@@ -51,8 +51,10 @@ router.post('/', auth, upload.single('file'), (req, res) => {
       return res.status(400).json({ error: 'Aucun fichier uploadé' });
     }
 
-    // Construire l'URL du fichier
-    const fileUrl = `/uploads/${req.file.filename}`;
+    // Construire l'URL complète du fichier (HTTPS)
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    const host = req.headers['x-forwarded-host'] || req.headers.host;
+    const fileUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
     
     res.json({
       success: true,
@@ -74,8 +76,12 @@ router.post('/multiple', auth, upload.array('files', 5), (req, res) => {
       return res.status(400).json({ error: 'Aucun fichier uploadé' });
     }
 
+    // Construire les URLs complètes (HTTPS)
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    const host = req.headers['x-forwarded-host'] || req.headers.host;
+
     const files = req.files.map(file => ({
-      url: `/uploads/${file.filename}`,
+      url: `${protocol}://${host}/uploads/${file.filename}`,
       filename: file.originalname,
       mimetype: file.mimetype,
       size: file.size
