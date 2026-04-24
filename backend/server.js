@@ -154,46 +154,52 @@ app.get('/api/news', async (req, res) => {
     let allNews = [];
     let source = 'unknown';
     
-    // Essayer CryptoCompare RSS (très fiable)
+    // Essayer CoinGecko News API (gratuite et fiable)
     try {
-      console.log('[News] Fetching from CryptoCompare RSS...');
-      const rssResponse = await fetch('https://min-api.cryptocompare.com/data/v2/news/?lang=EN', {
+      console.log('[News] Fetching from CoinGecko News API...');
+      const geckoResponse = await fetch(`https://api.coingecko.com/api/v3/news?page=1&per_page=${limit}`, {
         headers: {
           'Accept': 'application/json',
           'User-Agent': 'Mozilla/5.0'
         },
-        signal: AbortSignal.timeout(10000)
+        signal: AbortSignal.timeout(15000)
       });
       
-      if (rssResponse.ok) {
-        const data = await rssResponse.json();
-        console.log('[News] CryptoCompare response status:', rssResponse.status);
+      console.log('[News] CoinGecko response status:', geckoResponse.status);
+      
+      if (geckoResponse.ok) {
+        const data = await geckoResponse.json();
+        console.log('[News] CoinGecko data keys:', Object.keys(data));
         
-        if (data.Data && Array.isArray(data.Data)) {
-          allNews = data.Data.slice(0, limit).map((item) => ({
+        if (data.data && Array.isArray(data.data)) {
+          allNews = data.data.slice(0, limit).map((item) => ({
             id: String(item.id || Math.random()),
             title: item.title,
-            description: item.body || item.title,
+            description: item.description || item.title,
             url: item.url,
-            source: item.source || 'CryptoCompare',
-            author: item.source || 'Crypto News',
-            publishedAt: item.published_on ? new Date(item.published_on * 1000).toISOString() : new Date().toISOString(),
-            imageUrl: item.imageurl || null,
+            source: item.news_site || 'CoinGecko',
+            author: item.author || 'Crypto News',
+            publishedAt: item.updated_at || new Date().toISOString(),
+            imageUrl: item.thumb_2x || item.thumb || null,
             category: filter !== 'all' ? filter : 'general',
-            sentiment: detectSentiment(item.title + ' ' + (item.body || '')),
-            currencies: item.categories ? item.categories.split('|').map(c => c.trim()) : []
+            sentiment: detectSentiment(item.title + ' ' + (item.description || '')),
+            currencies: []
           }));
-          source = 'cryptocompare';
-          console.log(`[News] Successfully fetched ${allNews.length} news from CryptoCompare`);
+          source = 'coingecko';
+          console.log(`[News] Successfully fetched ${allNews.length} news from CoinGecko`);
+        } else {
+          console.log('[News] CoinGecko data format unexpected:', JSON.stringify(data).substring(0, 200));
         }
       } else {
-        console.log('[News] CryptoCompare API returned status:', rssResponse.status);
+        console.log('[News] CoinGecko API returned status:', geckoResponse.status);
+        const errorText = await geckoResponse.text();
+        console.log('[News] CoinGecko error:', errorText.substring(0, 200));
       }
-    } catch (ccError) {
-      console.log('[News] CryptoCompare API failed:', ccError.message);
+    } catch (geckoError) {
+      console.log('[News] CoinGecko API failed:', geckoError.message);
     }
     
-    // Si CryptoCompare échoue, essayer CryptoPanic
+    // Si CoinGecko échoue, essayer CryptoPanic
     if (allNews.length === 0) {
       try {
         console.log('[News] Trying CryptoPanic...');
