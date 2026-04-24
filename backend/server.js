@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 const fs = require('fs');
+const axios = require('axios');
 require('dotenv').config();
 
 // Create uploads directory if it doesn't exist
@@ -157,18 +158,18 @@ app.get('/api/news', async (req, res) => {
     // Essayer CoinGecko News API (gratuite et fiable)
     try {
       console.log('[News] Fetching from CoinGecko News API...');
-      const geckoResponse = await fetch(`https://api.coingecko.com/api/v3/news?page=1&per_page=${limit}`, {
+      const geckoResponse = await axios.get(`https://api.coingecko.com/api/v3/news?page=1&per_page=${limit}`, {
         headers: {
           'Accept': 'application/json',
           'User-Agent': 'Mozilla/5.0'
         },
-        signal: AbortSignal.timeout(15000)
+        timeout: 15000
       });
       
       console.log('[News] CoinGecko response status:', geckoResponse.status);
       
-      if (geckoResponse.ok) {
-        const data = await geckoResponse.json();
+      if (geckoResponse.status === 200) {
+        const data = geckoResponse.data;
         console.log('[News] CoinGecko data keys:', Object.keys(data));
         
         if (data.data && Array.isArray(data.data)) {
@@ -192,8 +193,6 @@ app.get('/api/news', async (req, res) => {
         }
       } else {
         console.log('[News] CoinGecko API returned status:', geckoResponse.status);
-        const errorText = await geckoResponse.text();
-        console.log('[News] CoinGecko error:', errorText.substring(0, 200));
       }
     } catch (geckoError) {
       console.log('[News] CoinGecko API failed:', geckoError.message);
@@ -203,16 +202,16 @@ app.get('/api/news', async (req, res) => {
     if (allNews.length === 0) {
       try {
         console.log('[News] Trying CryptoPanic...');
-        const cryptoPanicResponse = await fetch(`https://cryptopanic.com/api/free/v1/posts/?auth_token=demo&public=true&limit=${limit}`, {
+        const cryptoPanicResponse = await axios.get(`https://cryptopanic.com/api/free/v1/posts/?auth_token=demo&public=true&limit=${limit}`, {
           headers: {
             'Accept': 'application/json',
             'User-Agent': 'NEUROVEST-Trading-Bot/1.0'
           },
-          signal: AbortSignal.timeout(5000)
+          timeout: 5000
         });
         
-        if (cryptoPanicResponse.ok) {
-          const data = await cryptoPanicResponse.json();
+        if (cryptoPanicResponse.status === 200) {
+          const data = cryptoPanicResponse.data;
           if (data.results && Array.isArray(data.results)) {
             allNews = data.results.map((item) => ({
               id: item.id || String(Math.random()),
