@@ -38,6 +38,7 @@ interface CryptoState {
   
   // UI
   currentView: ViewType;
+  selectedNewsId: string | null;
   
   // API Status
   apiStatus: ApiStatus;
@@ -55,7 +56,8 @@ interface CryptoState {
   addAlert: (alert: Alert) => void;
   removeAlert: (id: string) => void;
   toggleAlert: (id: string) => void;
-  setView: (view: ViewType) => void;
+  setView: (view: ViewType, params?: { newsId?: string }) => void;
+  setSelectedNewsId: (id: string | null) => void;
   toggleIndicator: (type: string) => void;
   updateIndicatorParams: (type: string, params: Record<string, number>) => void;
 }
@@ -78,6 +80,7 @@ export const useCryptoStore = create<CryptoState>()(
       trades: [],
       alerts: [],
       currentView: 'dashboard',
+      selectedNewsId: null,
       apiStatus: { connected: false, source: 'none' },
       
       setPrice: (symbol, price) => {
@@ -143,7 +146,11 @@ export const useCryptoStore = create<CryptoState>()(
         set({ alerts });
       },
       
-      setView: (view) => set({ currentView: view }),
+      setView: (view, params) => set({ 
+        currentView: view, 
+        selectedNewsId: params?.newsId || null 
+      }),
+      setSelectedNewsId: (id) => set({ selectedNewsId: id }),
       
       toggleIndicator: (type) => {
         const indicators = get().indicators.map(i => 

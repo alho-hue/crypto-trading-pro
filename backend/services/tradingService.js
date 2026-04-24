@@ -253,6 +253,13 @@ class DemoTradingManager {
 
   async getBalance() {
     const data = await this.loadData();
+    // S'assurer que le balance est toujours initialisé
+    if (!data.balance || data.balance <= 0) {
+      console.log('[DemoTradingManager] Balance non initialisé, initialisation à', CONFIG.DEMO.INITIAL_BALANCE);
+      data.balance = CONFIG.DEMO.INITIAL_BALANCE;
+      await this.saveData();
+    }
+    console.log('[DemoTradingManager] Balance retourné:', data.balance);
     return data.balance;
   }
 

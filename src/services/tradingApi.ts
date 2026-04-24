@@ -252,8 +252,8 @@ export async function closePosition(
  */
 export async function getTradingBalance(isDemo: boolean = false): Promise<Balance> {
   try {
-    const result = await authenticatedRequest(`/api/trading/balance?isDemo=${isDemo}`);
-    
+    const result = await authenticatedRequest(`/api/trading/balance?isDemo=${isDemo ? 'true' : 'false'}`);
+
     return {
       balance: result.balance,
       totalBalance: result.totalBalance,
@@ -280,8 +280,8 @@ export async function getOpenPositions(isDemo: boolean = false): Promise<{
   };
 }> {
   try {
-    const result = await authenticatedRequest(`/api/trading/positions?isDemo=${isDemo}`);
-    
+    const result = await authenticatedRequest(`/api/trading/positions?isDemo=${isDemo ? 'true' : 'false'}`);
+
     return {
       positions: result.positions || [],
       summary: result.summary || {
@@ -347,9 +347,9 @@ export async function getTradeHistory(
 ): Promise<{ trades: any[]; count: number }> {
   try {
     const result = await authenticatedRequest(
-      `/api/trading/history?isDemo=${isDemo}&limit=${limit}`
+      `/api/trading/history?isDemo=${isDemo ? 'true' : 'false'}&limit=${limit}`
     );
-    
+
     return {
       trades: result.trades || [],
       count: result.count || 0

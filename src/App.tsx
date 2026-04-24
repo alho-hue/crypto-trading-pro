@@ -33,6 +33,7 @@ const AdminPanel = lazy(() => import('./components/AdminPanel'));
 const TradeManager = lazy(() => import('./components/TradeManager'));
 const LearningDashboard = lazy(() => import('./components/LearningDashboard'));
 const WidgetSettings = lazy(() => import('./components/WidgetSettings'));
+const NewsDetail = lazy(() => import('./components/NewsDetail'));
 
 // 🔄 Composant de loading optimisé
 const PageLoader = memo(() => (
@@ -130,6 +131,8 @@ function App() {
         return <TradeManager />;
       case 'learning':
         return <LearningDashboard />;
+      case 'newsDetail':
+        return <NewsDetail />;
       default:
         return <Dashboard />;
     }

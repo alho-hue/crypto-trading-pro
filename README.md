@@ -359,9 +359,9 @@ MIT License - see [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/neurovest/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/neurovest/discussions)
-- **Email**: support@neurovest.app
+- **Issues**: [GitHub Issues](https://github.com/alho-hue/crypto-trading-pro/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/alho-hue/crypto-trading-pro/discussions)
+- **Email**: alhousseynid504@gmail.com
 
 ---
 

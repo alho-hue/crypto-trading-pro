@@ -157,13 +157,16 @@ export function useTrading(options: UseTradingOptions = {}) {
   // Charger les données initiales
   const loadData = useCallback(async (demoMode: boolean) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
-    
+
     try {
       const [balanceData, positionsData] = await Promise.all([
         getTradingBalance(demoMode),
         getOpenPositions(demoMode)
       ]);
-      
+
+      console.log('[useTrading] Balance loaded:', balanceData);
+      console.log('[useTrading] Positions loaded:', positionsData);
+
       setState(prev => ({
         ...prev,
         balance: balanceData.balance,
@@ -172,6 +175,7 @@ export function useTrading(options: UseTradingOptions = {}) {
         isLoading: false
       }));
     } catch (error) {
+      console.error('[useTrading] Load data error:', error);
       setState(prev => ({
         ...prev,
         isLoading: false,

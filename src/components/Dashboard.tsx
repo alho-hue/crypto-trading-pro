@@ -18,6 +18,7 @@ import { getActiveAlerts } from '../services/alertsApi';
 import { showToast } from '../stores/toastStore';
 import { analyzeWithEthernal, formatEthernalAnalysis } from '../services/ethernalAnalysis';
 import { ChartWatermark } from './Watermark';
+import CryptoNews from './CryptoNews';
 import io from 'socket.io-client';
 import { createChart, ColorType, CrosshairMode, UTCTimestamp } from 'lightweight-charts';
 
@@ -1414,6 +1415,9 @@ export default function Dashboard() {
           )}
         </div>
         
+        {/* Actualités Crypto - Temps réel */}
+        <CryptoNews />
+
         {/* Alertes & Bot Status - Style amélioré */}
         <div className="bg-gradient-to-br from-gray-900 to-gray-800/30 rounded-xl sm:rounded-2xl border border-gray-700/50 overflow-hidden">
           <div className="px-3 sm:px-4 py-3 border-b border-gray-700/50 bg-gray-800/30">

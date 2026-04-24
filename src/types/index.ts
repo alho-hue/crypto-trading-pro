@@ -110,7 +110,7 @@ export interface ChartIndicator {
   };
 }
 
-export type ViewType = 'dashboard' | 'analysis' | 'strategies' | 'alerts' | 'journal' | 'liveTrading' | 'tradeHistory' | 'portfolio' | 'wallet' | 'risk' | 'backtest' | 'settings' | 'widgetSettings' | 'tradingBot' | 'scanner' | 'futures' | 'community' | 'profile' | 'admin' | 'tradeManager' | 'learning';
+export type ViewType = 'dashboard' | 'analysis' | 'strategies' | 'alerts' | 'journal' | 'liveTrading' | 'tradeHistory' | 'portfolio' | 'wallet' | 'risk' | 'backtest' | 'settings' | 'widgetSettings' | 'tradingBot' | 'scanner' | 'futures' | 'community' | 'profile' | 'admin' | 'tradeManager' | 'learning' | 'newsDetail';
 
 // ==================== RISK MANAGEMENT TYPES ====================
 

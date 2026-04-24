@@ -2424,7 +2424,7 @@ function ChatSystem({ admin, socket }: { admin: AdminUser; socket: Socket | null
       {/* Floating Chat Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-50 p-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-full shadow-2xl shadow-blue-500/30 transition-all hover:scale-110"
+        className="admin-chat-btn fixed bottom-6 right-6 z-50 p-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-full shadow-2xl shadow-blue-500/30 transition-all hover:scale-110"
       >
         <MessageSquare className="w-6 h-6" />
         {unreadCount > 0 && (
@@ -2436,7 +2436,7 @@ function ChatSystem({ admin, socket }: { admin: AdminUser; socket: Socket | null
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 z-50 w-[420px] h-[550px] bg-slate-900/95 backdrop-blur-xl rounded-2xl border border-blue-500/30 shadow-2xl shadow-blue-500/20 flex flex-col overflow-hidden">
+        <div className="admin-chat-container fixed bottom-24 right-6 z-50 w-[420px] h-[550px] bg-slate-900/95 backdrop-blur-xl rounded-2xl border border-blue-500/30 shadow-2xl shadow-blue-500/20 flex flex-col overflow-hidden">
           {/* Header */}
           <div className="p-4 bg-gradient-to-r from-blue-600/20 via-cyan-600/20 to-blue-600/20 border-b border-blue-500/20 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -2771,7 +2771,7 @@ export default function AdminPanel() {
 
       <div className="flex">
         {/* Sidebar */}
-        <div className={`admin-sidebar w-64 bg-gray-900 border-r border-gray-800 min-h-[calc(100vh-80px)] p-4 ${mobileMenuOpen ? 'open' : ''}`}>
+        <div className={`admin-sidebar w-64 bg-gray-900 border-r border-gray-800 min-h-[calc(100vh-80px)] p-4 overflow-y-auto ${mobileMenuOpen ? 'open' : ''}`}>
           <nav className="space-y-1">
             {availableTabs.map((tab) => {
               const Icon = tab.icon;

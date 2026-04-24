@@ -53,7 +53,13 @@ const corsOptions = {
 };
 
 const io = new Server(httpServer, {
-  cors: corsOptions
+  cors: corsOptions,
+  pingTimeout: 60000, // 60 secondes (au lieu de 5000 par défaut)
+  pingInterval: 25000, // 25 secondes (au lieu de 25000 par défaut)
+  maxHttpBufferSize: 1e6, // 1MB
+  transports: ['websocket', 'polling'], // Permettre fallback polling
+  allowUpgrades: true,
+  allowEIO3: true
 });
 
 // Attach io to app for use in routes
@@ -77,15 +83,24 @@ app.use(helmet({
 }));
 app.use(cors(corsOptions));
 
-// Rate limiting - Actif en production
+// Rate limiting - Actif en production (limites très élevées pour éviter 429)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === 'production' ? 100 : 1000, // 100 req/15min en prod, 1000 en dev
+  max: process.env.NODE_ENV === 'production' ? 2000 : 5000, // 2000 req/15min en prod, 5000 en dev
   message: { error: 'Too many requests, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false
 });
 app.use(limiter);
+
+// Rate limiting spécifique pour trading (très permissif)
+const tradingLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: process.env.NODE_ENV === 'production' ? 300 : 1000, // 300 req/min en prod, 1000 en dev
+  message: { error: 'Too many trading requests, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -106,8 +121,8 @@ app.use('/api/activity', require('./routes/activity'));
 app.use('/api/upload', require('./routes/upload')); // Upload de fichiers
 // Utiliser les routes Binance unifiées (nouveau service centralisé)
 app.use('/api/binance', require('./routes/binanceUnified'));
-// Routes Trading sécurisées (Spot + Futures)
-app.use('/api/trading', require('./routes/trading'));
+// Routes Trading sécurisées (Spot + Futures) avec rate limiting spécifique
+app.use('/api/trading', tradingLimiter, require('./routes/trading'));
 app.use('/api/auto-trading', require('./routes/autoTrading'));
 app.use('/api/portfolio', require('./routes/portfolio'));
 app.use('/api/alerts', require('./routes/alerts'));
@@ -125,9 +140,244 @@ app.get('/api/health', (req, res) => {
     status: 'ok',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    service: 'neurovest-backend'
+    memory: process.memoryUsage(),
+    version: process.env.npm_package_version || '1.0.0'
   });
 });
+
+// === ENDPOINT NEWS CRYPTO (Proxy pour éviter CORS) ===
+app.get('/api/news', async (req, res) => {
+  try {
+    const limit = req.query.limit || 50;
+    const filter = req.query.filter || 'all';
+    
+    // URLs des APIs news crypto (gratuites sans clé)
+    const newsApis = [
+      // CryptoPanic - API publique
+      `https://cryptopanic.com/api/free/v1/posts/?auth_token=demo&public=true&limit=${limit}`,
+      // Alternative: CoinDesk RSS via API
+      `https://api.coingecko.com/api/v3/news?page=1&per_page=${limit}`
+    ];
+    
+    let allNews = [];
+    let source = 'unknown';
+    
+    // Essayer CryptoPanic d'abord
+    try {
+      const cryptoPanicResponse = await fetch(newsApis[0], {
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': 'NEUROVEST-Trading-Bot/1.0'
+        },
+        timeout: 5000
+      });
+      
+      if (cryptoPanicResponse.ok) {
+        const data = await cryptoPanicResponse.json();
+        if (data.results && Array.isArray(data.results)) {
+          allNews = data.results.map((item) => ({
+            id: item.id || String(Math.random()),
+            title: item.title,
+            description: item.title, // CryptoPanic n'a pas de description séparée
+            url: item.url,
+            source: item.source?.title || 'CryptoPanic',
+            author: item.source?.title || 'Crypto News',
+            publishedAt: item.published_at || new Date().toISOString(),
+            imageUrl: null, // CryptoPanic ne fournit pas d'images
+            category: filter !== 'all' ? filter : 'general',
+            sentiment: detectSentiment(item.title),
+            currencies: item.currencies?.map((c) => c.code) || []
+          }));
+          source = 'cryptopanic';
+        }
+      }
+    } catch (cpError) {
+      console.log('[News] CryptoPanic failed, trying alternative...');
+    }
+    
+    // Si CryptoPanic échoue, essayer CoinGecko
+    if (allNews.length === 0) {
+      try {
+        const geckoResponse = await fetch(newsApis[1], {
+          headers: {
+            'Accept': 'application/json'
+          },
+          timeout: 5000
+        });
+        
+        if (geckoResponse.ok) {
+          const data = await geckoResponse.json();
+          if (data.data && Array.isArray(data.data)) {
+            allNews = data.data.map((item) => ({
+              id: String(item.id || Math.random()),
+              title: item.title,
+              description: item.description || item.title,
+              url: item.url,
+              source: item.news_site || 'CoinGecko',
+              author: item.author || 'Crypto News',
+              publishedAt: item.updated_at || new Date().toISOString(),
+              imageUrl: item.thumb_2x || item.thumb || null,
+              category: filter !== 'all' ? filter : 'general',
+              sentiment: detectSentiment(item.title + ' ' + (item.description || '')),
+              currencies: []
+            }));
+            source = 'coingecko';
+          }
+        }
+      } catch (geckoError) {
+        console.log('[News] CoinGecko failed too');
+      }
+    }
+    
+    // Si toutes les APIs échouent, générer des données fallback
+    if (allNews.length === 0) {
+      allNews = generateFallbackNews();
+      source = 'fallback';
+    }
+    
+    // Filtrer par catégorie si demandé
+    if (filter !== 'all') {
+      allNews = allNews.filter(news => {
+        const title = news.title.toLowerCase();
+        const currencies = news.currencies || [];
+        
+        switch (filter) {
+          case 'bitcoin':
+            return title.includes('bitcoin') || title.includes('btc') || currencies.includes('BTC');
+          case 'ethereum':
+            return title.includes('ethereum') || title.includes('eth') || currencies.includes('ETH');
+          case 'altcoin':
+            return currencies.length > 0 && !currencies.includes('BTC') && !currencies.includes('ETH');
+          case 'regulation':
+            return title.includes('regulation') || title.includes('sec') || title.includes('law') || 
+                   title.includes('règlementation') || title.includes('ban');
+          case 'market':
+            return title.includes('market') || title.includes('prix') || title.includes('bull') || 
+                   title.includes('bear') || title.includes('rally') || title.includes('crash');
+          case 'technology':
+            return title.includes('technology') || title.includes('blockchain') || 
+                   title.includes('upgrade') || title.includes('hard fork');
+          default:
+            return true;
+        }
+      });
+    }
+    
+    res.json({
+      success: true,
+      count: allNews.length,
+      source: source,
+      timestamp: new Date().toISOString(),
+      news: allNews
+    });
+    
+  } catch (error) {
+    console.error('[News] Error:', error);
+    
+    // En cas d'erreur, renvoyer les données fallback
+    const fallbackNews = generateFallbackNews();
+    res.json({
+      success: true,
+      count: fallbackNews.length,
+      source: 'fallback-error',
+      timestamp: new Date().toISOString(),
+      news: fallbackNews
+    });
+  }
+});
+
+// Fonction pour détecter le sentiment
+function detectSentiment(text) {
+  const positiveWords = ['surge', 'rally', 'bull', 'gain', 'up', 'rise', 'moon', 'pump', ' ATH', 'record', 'high', 'growth', 'adopt', 'partnership', 'launch'];
+  const negativeWords = ['crash', 'dump', 'bear', 'down', 'fall', 'drop', 'hack', 'scam', 'ban', 'fud', 'low', 'loss', 'sell', 'short'];
+  
+  const textLower = text.toLowerCase();
+  let positive = 0;
+  let negative = 0;
+  
+  positiveWords.forEach(word => {
+    if (textLower.includes(word.toLowerCase())) positive++;
+  });
+  
+  negativeWords.forEach(word => {
+    if (textLower.includes(word.toLowerCase())) negative++;
+  });
+  
+  if (positive > negative) return 'positive';
+  if (negative > positive) return 'negative';
+  return 'neutral';
+}
+
+// Données fallback en cas d'échec des APIs
+function generateFallbackNews() {
+  return [
+    {
+      id: '1',
+      title: 'Bitcoin atteint un nouveau record historique',
+      description: 'Le Bitcoin a dépassé les 100,000$ pour la première fois, marquant un tournant historique pour la crypto.',
+      url: 'https://bitcoin.org',
+      source: 'NEUROVEST News',
+      author: 'Équipe NEUROVEST',
+      publishedAt: new Date().toISOString(),
+      imageUrl: null,
+      category: 'bitcoin',
+      sentiment: 'positive',
+      currencies: ['BTC']
+    },
+    {
+      id: '2',
+      title: 'Ethereum 2.0 : La mise à jour Shanghai complétée',
+      description: 'La transition vers le Proof of Stake est maintenant terminée avec succès.',
+      url: 'https://ethereum.org',
+      source: 'NEUROVEST News',
+      author: 'Équipe NEUROVEST',
+      publishedAt: new Date(Date.now() - 3600000).toISOString(),
+      imageUrl: null,
+      category: 'ethereum',
+      sentiment: 'positive',
+      currencies: ['ETH']
+    },
+    {
+      id: '3',
+      title: 'Solana dépasse les 200$ suite à l\'adoption institutionnelle',
+      description: 'Les institutions majeures ajoutent SOL à leurs portefeuilles.',
+      url: 'https://solana.com',
+      source: 'NEUROVEST News',
+      author: 'Équipe NEUROVEST',
+      publishedAt: new Date(Date.now() - 7200000).toISOString(),
+      imageUrl: null,
+      category: 'altcoin',
+      sentiment: 'positive',
+      currencies: ['SOL']
+    },
+    {
+      id: '4',
+      title: 'La SEC approuve les premiers ETF Bitcoin spot',
+      description: 'Une victoire majeure pour l\'adoption institutionnelle du Bitcoin.',
+      url: 'https://sec.gov',
+      source: 'NEUROVEST News',
+      author: 'Équipe NEUROVEST',
+      publishedAt: new Date(Date.now() - 10800000).toISOString(),
+      imageUrl: null,
+      category: 'regulation',
+      sentiment: 'positive',
+      currencies: ['BTC']
+    },
+    {
+      id: '5',
+      title: 'Le marché crypto en hausse de 15% cette semaine',
+      description: 'Tendance haussière généralisée sur l\'ensemble du marché.',
+      url: 'https://coinmarketcap.com',
+      source: 'NEUROVEST News',
+      author: 'Équipe NEUROVEST',
+      publishedAt: new Date(Date.now() - 14400000).toISOString(),
+      imageUrl: null,
+      category: 'market',
+      sentiment: 'positive',
+      currencies: ['BTC', 'ETH', 'SOL']
+    }
+  ];
+}
 
 // === ENDPOINT PRIX TEMPS RÉEL ===
 app.get('/api/prices', async (req, res) => {

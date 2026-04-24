@@ -332,11 +332,14 @@ router.get('/positions', optionalAuth, asyncHandler(async (req, res) => {
 router.get('/balance', optionalAuth, asyncHandler(async (req, res) => {
   const { isDemo = false } = req.query;
 
+  console.log('[Trading] Balance request - isDemo:', isDemo);
+
   try {
     let balance;
-    
+
     if (isDemo === 'true') {
       balance = await tradingService.demoManager.getBalance();
+      console.log('[Trading] Demo balance:', balance);
       res.json({
         success: true,
         demoMode: true,
@@ -347,7 +350,9 @@ router.get('/balance', optionalAuth, asyncHandler(async (req, res) => {
     } else {
       const balances = await binanceService.getBalances();
       const usdt = balances.find(b => b.asset === 'USDT');
-      
+
+      console.log('[Trading] Real balance:', usdt ? usdt.free : 0);
+
       res.json({
         success: true,
         demoMode: false,
@@ -361,6 +366,7 @@ router.get('/balance', optionalAuth, asyncHandler(async (req, res) => {
     }
 
   } catch (error) {
+    console.error('[Trading] Balance error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Échec de la récupération du solde',

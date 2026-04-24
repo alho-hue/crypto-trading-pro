@@ -679,12 +679,17 @@ export async function executeManualTradeLocal(
       qty = Math.max(qty, minQty);
     }
     
-    // Vérifier que le balance est suffisant
+    // Vérifier que le balance est suffisant (différent pour achat vs vente)
     const tradeValue = entryPrice * qty;
     const currentBalance = getPaperBalance();
-    
-    if (tradeValue > currentBalance * 1.5) {
-      return { success: false, error: 'Balance insuffisant pour ce trade' };
+
+    // Pour les achats (LONG): besoin de capital suffisant
+    if (side === 'buy' && tradeValue > currentBalance) {
+      return { success: false, error: 'Balance insuffisant pour cet achat' };
+    }
+    // Pour les ventes (SHORT): vérifier qu'on a au moins la marge (10% de la valeur)
+    if (side === 'sell' && tradeValue > currentBalance * 10) {
+      return { success: false, error: 'Balance insuffisant pour cette vente à découvert (marge requise)' };
     }
     
     // Créer l'ordre simulé (comme si ça venait de l'API)
@@ -731,10 +736,14 @@ export async function executeManualTradeLocal(
       takeProfit,
       notes: `Trade manuel - Confiance ${confidence}%`
     });
-    
-    // Mettre à jour le balance
-    updatePaperBalance(-tradeValue);
-    
+
+    // Mettre à jour le balance (UNIQUEMENT pour les achats, pas pour les ventes/SHORT)
+    if (side === 'buy') {
+      updatePaperBalance(-tradeValue); // Déduire pour achat
+    }
+    // Pour les ventes (SHORT), on ne déduit pas le capital - on vend à découvert
+    // La marge est déjà couverte par le balance disponible
+
     // Mettre à jour les stats
     const stats = getBotStats();
     saveBotStats({
@@ -742,7 +751,7 @@ export async function executeManualTradeLocal(
       dailyTradeCount: stats.dailyTradeCount + 1,
       lastTradeTime: now
     });
-    
+
     console.log(`[MANUAL TRADE] ✅ ${side.toUpperCase()} exécuté: ${qty.toFixed(6)} ${symbol} @ $${entryPrice} = $${tradeValue.toFixed(2)}`);
     
     return {

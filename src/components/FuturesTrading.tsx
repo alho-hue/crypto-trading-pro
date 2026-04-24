@@ -51,19 +51,24 @@ export default function FuturesTrading() {
   const [activeTab, setActiveTab] = useState<'trade' | 'positions'>('trade');
   const [validation, setValidation] = useState<{ valid: boolean; errors: string[]; warnings: string[]; positionPercent: number; riskRewardRatio: number } | null>(null);
 
-  // SL/TP automatiques
+  // SL/TP automatiques (basé sur prix entré ou prix marché)
   useEffect(() => {
-    if (autoSLTP && currentPrice > 0) {
-      const defaults = getDefaultSLTP(currentPrice, side === 'long' ? 'BUY' : 'SELL');
+    // Déterminer le prix de référence : prix entré manuellement ou prix du marché
+    const referencePrice = (orderType === 'limit' && price && parseFloat(price) > 0)
+      ? parseFloat(price)
+      : currentPrice;
+
+    if (autoSLTP && referencePrice > 0) {
+      const defaults = getDefaultSLTP(referencePrice, side === 'long' ? 'BUY' : 'SELL');
       setStopLoss(defaults.stopLoss.toFixed(2));
       setTakeProfit(defaults.takeProfit.toFixed(2));
       // Convertir en USD aussi
-      const slDistance = Math.abs(currentPrice - defaults.stopLoss);
-      const tpDistance = Math.abs(defaults.takeProfit - currentPrice);
+      const slDistance = Math.abs(referencePrice - defaults.stopLoss);
+      const tpDistance = Math.abs(defaults.takeProfit - referencePrice);
       setSlUsd((slDistance > 0 ? slDistance.toFixed(2) : ''));
       setTpUsd((tpDistance > 0 ? tpDistance.toFixed(2) : ''));
     }
-  }, [currentPrice, side, autoSLTP, getDefaultSLTP]);
+  }, [currentPrice, side, autoSLTP, getDefaultSLTP, orderType, price]);
   
   // Conversion USD <-> Crypto
   const handleUsdAmountChange = (value: string) => {
@@ -123,55 +128,130 @@ export default function FuturesTrading() {
   };
 
   // 🧠 REMPLIR AVEC IA - RESPECTE LE MONTANT USDT
-  const handleFillWithAI = () => {
-    if (!currentPrice || currentPrice <= 0) {
-      showToast.error('Prix actuel non disponible', 'Erreur');
+  const handleFillWithAI = async () => {
+    console.log('[FuturesTrading] handleFillWithAI called - selectedSymbol:', selectedSymbol);
+
+    let livePrice = currentPrice;
+    console.log('[FuturesTrading] Prix du store:', livePrice);
+
+    // Si le prix n'est pas dans le store, le charger depuis l'API
+    if (!livePrice || livePrice <= 0) {
+      console.log('[FuturesTrading] Prix non disponible dans le store, chargement depuis API...');
+      try {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        console.log('[FuturesTrading] API_URL:', API_URL);
+        const response = await fetch(`${API_URL}/api/prices?symbols=${selectedSymbol}`);
+        const data = await response.json();
+        console.log('[FuturesTrading] API response:', data);
+
+        if (data.success && data.prices && data.prices.length > 0) {
+          livePrice = data.prices[0].price;
+          console.log('[FuturesTrading] Prix récupéré depuis API:', livePrice);
+          // Mettre à jour le store avec le prix récupéré
+          useCryptoStore.getState().setPrice(selectedSymbol, {
+            symbol: selectedSymbol,
+            price: livePrice,
+            change24h: data.prices[0].priceChangePercent || 0,
+            change24hValue: 0,
+            volume24h: data.prices[0].volume || 0,
+            high24h: data.prices[0].highPrice || 0,
+            low24h: data.prices[0].lowPrice || 0,
+            lastUpdate: Date.now()
+          });
+        } else {
+          // Fallback: utiliser un prix fictif basé sur le symbol si API retourne vide
+          console.warn('[FuturesTrading] API retourne tableau vide ou invalide, utilisation fallback');
+          const fallbackPrices: Record<string, number> = {
+            'BTCUSDT': 45000,
+            'ETHUSDT': 3000,
+            'BNBUSDT': 250,
+            'SOLUSDT': 100,
+            'ADAUSDT': 0.5,
+            'XRPUSDT': 0.6,
+            'DOTUSDT': 7,
+            'DOGEUSDT': 0.15
+          };
+          livePrice = fallbackPrices[selectedSymbol] || 100;
+          console.log('[FuturesTrading] Prix fallback utilisé:', livePrice);
+          showToast.warning('Prix API non disponible - Utilisation prix estimé', 'Attention');
+        }
+      } catch (error) {
+        console.error('[FuturesTrading] Erreur lors du chargement du prix:', error);
+        // Fallback: utiliser un prix fictif basé sur le symbol
+        const fallbackPrices: Record<string, number> = {
+          'BTCUSDT': 45000,
+          'ETHUSDT': 3000,
+          'BNBUSDT': 250,
+          'SOLUSDT': 100,
+          'ADAUSDT': 0.5,
+          'XRPUSDT': 0.6,
+          'DOTUSDT': 7,
+          'DOGEUSDT': 0.15
+        };
+        livePrice = fallbackPrices[selectedSymbol] || 100;
+        console.log('[FuturesTrading] Prix fallback utilisé (erreur):', livePrice);
+        showToast.warning('Prix API non disponible - Utilisation prix estimé', 'Attention');
+      }
+    }
+
+    if (!livePrice || livePrice <= 0) {
+      console.error('[FuturesTrading] Prix toujours non disponible après toutes les tentatives');
+      showToast.error('Prix actuel non disponible - Veuillez réessayer', 'Erreur');
       return;
     }
-    
-    const setup = getAITradingSetup(selectedSymbol, currentPrice);
-    
+
+    console.log('[FuturesTrading] Prix final utilisé:', livePrice);
+    const setup = getAITradingSetup(selectedSymbol, livePrice);
+    console.log('[FuturesTrading] Setup IA:', setup);
+
     // 🎯 RESPECTER LE MONTANT USDT DE L'UTILISATEUR
-    const userUsdAmount = parseFloat(usdAmount) || 0;
-    const maxAllowedUsd = Math.min(userUsdAmount > 0 ? userUsdAmount : balance * 0.02, balance * 0.10);
-    
+    let userUsdAmount = parseFloat(usdAmount) || 0;
+
+    // Si l'utilisateur n'a pas entré de montant, utiliser 2% du balance par défaut
+    if (userUsdAmount <= 0) {
+      userUsdAmount = balance * 0.02;
+      setUsdAmount(userUsdAmount.toFixed(2));
+    }
+
+    const maxAllowedUsd = Math.min(userUsdAmount, balance * 0.10);
+
     // Appliquer le setup IA avec LE MONTANT DE L'UTILISATEUR
     if (setup.entryPrice) {
       // Calculer quantité basée sur le montant USDT (avec levier)
       const qty = (maxAllowedUsd * leverage / setup.entryPrice).toFixed(6);
       setQuantity(qty);
-      
+
       // Recalculer le vrai montant USDT
       const actualUsdUsed = (parseFloat(qty) * setup.entryPrice / leverage).toFixed(2);
       setUsdAmount(actualUsdUsed);
-      
+
       // 🚨 ALERTE si dépasse budget
       if (parseFloat(actualUsdUsed) > balance) {
         showToast.warning(`⚠️ Montant ${actualUsdUsed}$ > Balance ${balance}$`, 'Attention Budget');
       }
     }
-    
+
     if (setup.stopLoss) {
       setStopLoss(setup.stopLoss.toFixed(2));
-      const slDist = Math.abs(currentPrice - setup.stopLoss).toFixed(2);
+      const slDist = Math.abs(livePrice - setup.stopLoss).toFixed(2);
       setSlUsd(slDist);
     }
-    
+
     if (setup.takeProfit) {
       setTakeProfit(setup.takeProfit.toFixed(2));
-      const tpDist = Math.abs(setup.takeProfit - currentPrice).toFixed(2);
+      const tpDist = Math.abs(setup.takeProfit - livePrice).toFixed(2);
       setTpUsd(tpDist);
     }
-    
+
     // Ajuster le side selon la direction IA
     if (setup.direction === 'LONG') {
       setSide('long');
     } else if (setup.direction === 'SHORT') {
       setSide('short');
     }
-    
+
     setAutoSLTP(false);
-    
+
     showToast.success(
       `🧠 Setup IA appliqué! ${setup.direction} @ $${setup.entryPrice} (Score: ${setup.score}/100, Levier: ${leverage}x)`,
       'Signal IA'
