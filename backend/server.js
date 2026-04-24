@@ -154,10 +154,10 @@ app.get('/api/news', async (req, res) => {
     let allNews = [];
     let source = 'unknown';
     
-    // Essayer Binance News API (gratuite et fiable)
+    // Essayer CryptoCompare RSS (très fiable)
     try {
-      console.log('[News] Fetching from Binance News API...');
-      const binanceResponse = await fetch('https://www.binance.com/bapi/composite/v1/public/cms/article/list/query?type=1&noLogin=true&pageNo=1&pageSize=50', {
+      console.log('[News] Fetching from CryptoCompare RSS...');
+      const rssResponse = await fetch('https://min-api.cryptocompare.com/data/v2/news/?lang=EN', {
         headers: {
           'Accept': 'application/json',
           'User-Agent': 'Mozilla/5.0'
@@ -165,35 +165,35 @@ app.get('/api/news', async (req, res) => {
         signal: AbortSignal.timeout(10000)
       });
       
-      if (binanceResponse.ok) {
-        const data = await binanceResponse.json();
-        console.log('[News] Binance response:', JSON.stringify(data).substring(0, 200));
+      if (rssResponse.ok) {
+        const data = await rssResponse.json();
+        console.log('[News] CryptoCompare response status:', rssResponse.status);
         
-        if (data.data && Array.isArray(data.data.catalogs)) {
-          allNews = data.data.catalogs.slice(0, limit).map((item) => ({
+        if (data.Data && Array.isArray(data.Data)) {
+          allNews = data.Data.slice(0, limit).map((item) => ({
             id: String(item.id || Math.random()),
             title: item.title,
-            description: item.description || item.title,
-            url: item.code ? `https://www.binance.com/en/support/announcement/${item.code}` : 'https://www.binance.com',
-            source: 'Binance',
-            author: 'Binance',
-            publishedAt: item.releaseDate || new Date().toISOString(),
-            imageUrl: null,
+            description: item.body || item.title,
+            url: item.url,
+            source: item.source || 'CryptoCompare',
+            author: item.source || 'Crypto News',
+            publishedAt: item.published_on ? new Date(item.published_on * 1000).toISOString() : new Date().toISOString(),
+            imageUrl: item.imageurl || null,
             category: filter !== 'all' ? filter : 'general',
-            sentiment: detectSentiment(item.title + ' ' + (item.description || '')),
-            currencies: []
+            sentiment: detectSentiment(item.title + ' ' + (item.body || '')),
+            currencies: item.categories ? item.categories.split('|').map(c => c.trim()) : []
           }));
-          source = 'binance';
-          console.log(`[News] Successfully fetched ${allNews.length} news from Binance`);
+          source = 'cryptocompare';
+          console.log(`[News] Successfully fetched ${allNews.length} news from CryptoCompare`);
         }
       } else {
-        console.log('[News] Binance API returned status:', binanceResponse.status);
+        console.log('[News] CryptoCompare API returned status:', rssResponse.status);
       }
-    } catch (binanceError) {
-      console.log('[News] Binance API failed:', binanceError.message);
+    } catch (ccError) {
+      console.log('[News] CryptoCompare API failed:', ccError.message);
     }
     
-    // Si Binance échoue, essayer CryptoPanic
+    // Si CryptoCompare échoue, essayer CryptoPanic
     if (allNews.length === 0) {
       try {
         console.log('[News] Trying CryptoPanic...');
