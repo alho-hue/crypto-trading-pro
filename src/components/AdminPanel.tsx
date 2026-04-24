@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { notifications } from '../services/notificationService';
 import { io, Socket } from 'socket.io-client';
+import './AdminPanelMobile.css';
 
 // ============================================
 // 🎨 ADMIN BRANDING
@@ -583,7 +584,7 @@ function UsersTab({ admin }: { admin: AdminUser }) {
       </div>
 
       {/* Users Table */}
-      <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+      <div className="admin-table-container bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
         <table className="w-full">
           <thead className="bg-gray-800/50">
             <tr>
@@ -806,7 +807,7 @@ function TradesTab({ admin }: { admin: AdminUser }) {
       </div>
 
       {/* Trades Table */}
-      <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+      <div className="admin-table-container bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
         <div className="p-4 border-b border-gray-800 flex items-center justify-between">
           <h3 className="font-semibold text-white">Trades en cours</h3>
           <button onClick={fetchTrades} className="p-2 hover:bg-gray-800 rounded-lg">
@@ -1412,7 +1413,7 @@ function ModerationTab({ admin }: { admin: AdminUser }) {
       </div>
 
       {/* Liste des signalements */}
-      <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+      <div className="admin-table-container bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
         <table className="w-full">
           <thead className="bg-gray-800/50">
             <tr>
@@ -2580,6 +2581,7 @@ export default function AdminPanel() {
   const [overview, setOverview] = useState<OverviewStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [socket, setSocket] = useState<Socket | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Vérifier auth au chargement
   useEffect(() => {
@@ -2731,13 +2733,23 @@ export default function AdminPanel() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="admin-menu-btn p-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition-all"
+              aria-label="Menu"
+            >
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
             <button
               onClick={fetchOverview}
               className="p-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition-all"
             >
               <RefreshCw className={`w-5 h-5 text-gray-400 ${loading ? 'animate-spin' : ''}`} />
             </button>
-            <div className="flex items-center gap-2 px-4 py-2 bg-green-500/20 text-green-400 rounded-lg">
+            <div className="admin-hide-mobile flex items-center gap-2 px-4 py-2 bg-green-500/20 text-green-400 rounded-lg">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
               Système OK
             </div>
@@ -2752,16 +2764,24 @@ export default function AdminPanel() {
         </div>
       </div>
 
+      {/* Overlay for mobile */}
+      {mobileMenuOpen && (
+        <div className="admin-overlay" onClick={() => setMobileMenuOpen(false)} />
+      )}
+
       <div className="flex">
         {/* Sidebar */}
-        <div className="w-64 bg-gray-900 border-r border-gray-800 min-h-[calc(100vh-80px)] p-4">
+        <div className={`admin-sidebar w-64 bg-gray-900 border-r border-gray-800 min-h-[calc(100vh-80px)] p-4 ${mobileMenuOpen ? 'open' : ''}`}>
           <nav className="space-y-1">
             {availableTabs.map((tab) => {
               const Icon = tab.icon;
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    setMobileMenuOpen(false);
+                  }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
                     activeTab === tab.id
                       ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
@@ -2794,7 +2814,7 @@ export default function AdminPanel() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-6 overflow-auto relative">
+        <div className="admin-main-content flex-1 p-6 overflow-auto relative">
           {activeTab === 'ai-dashboard' && <AIDashboardTab admin={admin} />}
           {activeTab === 'dashboard' && <DashboardTab stats={overview} onRefresh={fetchOverview} />}
           {activeTab === 'users' && <UsersTab admin={admin} />}
