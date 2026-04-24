@@ -151,86 +151,88 @@ app.get('/api/news', async (req, res) => {
     const limit = req.query.limit || 50;
     const filter = req.query.filter || 'all';
     
-    // URLs des APIs news crypto (gratuites sans clé)
-    const newsApis = [
-      // CryptoPanic - API publique
-      `https://cryptopanic.com/api/free/v1/posts/?auth_token=demo&public=true&limit=${limit}`,
-      // Alternative: CoinDesk RSS via API
-      `https://api.coingecko.com/api/v3/news?page=1&per_page=${limit}`
-    ];
-    
     let allNews = [];
     let source = 'unknown';
     
-    // Essayer CryptoPanic d'abord
+    // Essayer Binance News API (gratuite et fiable)
     try {
-      const cryptoPanicResponse = await fetch(newsApis[0], {
+      console.log('[News] Fetching from Binance News API...');
+      const binanceResponse = await fetch('https://www.binance.com/bapi/composite/v1/public/cms/article/list/query?type=1&noLogin=true&pageNo=1&pageSize=50', {
         headers: {
           'Accept': 'application/json',
-          'User-Agent': 'NEUROVEST-Trading-Bot/1.0'
+          'User-Agent': 'Mozilla/5.0'
         },
-        timeout: 5000
+        signal: AbortSignal.timeout(10000)
       });
       
-      if (cryptoPanicResponse.ok) {
-        const data = await cryptoPanicResponse.json();
-        if (data.results && Array.isArray(data.results)) {
-          allNews = data.results.map((item) => ({
-            id: item.id || String(Math.random()),
+      if (binanceResponse.ok) {
+        const data = await binanceResponse.json();
+        console.log('[News] Binance response:', JSON.stringify(data).substring(0, 200));
+        
+        if (data.data && Array.isArray(data.data.catalogs)) {
+          allNews = data.data.catalogs.slice(0, limit).map((item) => ({
+            id: String(item.id || Math.random()),
             title: item.title,
-            description: item.title, // CryptoPanic n'a pas de description séparée
-            url: item.url,
-            source: item.source?.title || 'CryptoPanic',
-            author: item.source?.title || 'Crypto News',
-            publishedAt: item.published_at || new Date().toISOString(),
-            imageUrl: null, // CryptoPanic ne fournit pas d'images
+            description: item.description || item.title,
+            url: item.code ? `https://www.binance.com/en/support/announcement/${item.code}` : 'https://www.binance.com',
+            source: 'Binance',
+            author: 'Binance',
+            publishedAt: item.releaseDate || new Date().toISOString(),
+            imageUrl: null,
             category: filter !== 'all' ? filter : 'general',
-            sentiment: detectSentiment(item.title),
-            currencies: item.currencies?.map((c) => c.code) || []
+            sentiment: detectSentiment(item.title + ' ' + (item.description || '')),
+            currencies: []
           }));
-          source = 'cryptopanic';
+          source = 'binance';
+          console.log(`[News] Successfully fetched ${allNews.length} news from Binance`);
         }
+      } else {
+        console.log('[News] Binance API returned status:', binanceResponse.status);
       }
-    } catch (cpError) {
-      console.log('[News] CryptoPanic failed, trying alternative...');
+    } catch (binanceError) {
+      console.log('[News] Binance API failed:', binanceError.message);
     }
     
-    // Si CryptoPanic échoue, essayer CoinGecko
+    // Si Binance échoue, essayer CryptoPanic
     if (allNews.length === 0) {
       try {
-        const geckoResponse = await fetch(newsApis[1], {
+        console.log('[News] Trying CryptoPanic...');
+        const cryptoPanicResponse = await fetch(`https://cryptopanic.com/api/free/v1/posts/?auth_token=demo&public=true&limit=${limit}`, {
           headers: {
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'User-Agent': 'NEUROVEST-Trading-Bot/1.0'
           },
-          timeout: 5000
+          signal: AbortSignal.timeout(5000)
         });
         
-        if (geckoResponse.ok) {
-          const data = await geckoResponse.json();
-          if (data.data && Array.isArray(data.data)) {
-            allNews = data.data.map((item) => ({
-              id: String(item.id || Math.random()),
+        if (cryptoPanicResponse.ok) {
+          const data = await cryptoPanicResponse.json();
+          if (data.results && Array.isArray(data.results)) {
+            allNews = data.results.map((item) => ({
+              id: item.id || String(Math.random()),
               title: item.title,
-              description: item.description || item.title,
+              description: item.title,
               url: item.url,
-              source: item.news_site || 'CoinGecko',
-              author: item.author || 'Crypto News',
-              publishedAt: item.updated_at || new Date().toISOString(),
-              imageUrl: item.thumb_2x || item.thumb || null,
+              source: item.source?.title || 'CryptoPanic',
+              author: item.source?.title || 'Crypto News',
+              publishedAt: item.published_at || new Date().toISOString(),
+              imageUrl: null,
               category: filter !== 'all' ? filter : 'general',
-              sentiment: detectSentiment(item.title + ' ' + (item.description || '')),
-              currencies: []
+              sentiment: detectSentiment(item.title),
+              currencies: item.currencies?.map((c) => c.code) || []
             }));
-            source = 'coingecko';
+            source = 'cryptopanic';
+            console.log(`[News] Successfully fetched ${allNews.length} news from CryptoPanic`);
           }
         }
-      } catch (geckoError) {
-        console.log('[News] CoinGecko failed too');
+      } catch (cpError) {
+        console.log('[News] CryptoPanic failed:', cpError.message);
       }
     }
     
     // Si toutes les APIs échouent, générer des données fallback
     if (allNews.length === 0) {
+      console.log('[News] All APIs failed, using fallback data');
       allNews = generateFallbackNews();
       source = 'fallback';
     }
