@@ -351,9 +351,9 @@ router.all('/balance', optionalAuth, asyncHandler(async (req, res) => {
       // Récupérer les clés API depuis le body ou headers
       const apiKey = req.body?.apiKey || req.headers['x-binance-api-key'];
       const secretKey = req.body?.secretKey || req.headers['x-binance-secret-key'];
-      
+
       const apiKeys = (apiKey && secretKey) ? { apiKey, secretKey } : null;
-      const balances = await binanceService.getBalances(apiKeys);
+      const balances = await binanceService.getAccountBalances(apiKeys);
       const usdt = balances.find(b => b.asset === 'USDT');
 
       console.log('[Trading] Real balance:', usdt ? usdt.free : 0);
@@ -361,11 +361,11 @@ router.all('/balance', optionalAuth, asyncHandler(async (req, res) => {
       res.json({
         success: true,
         demoMode: false,
-        balance: usdt ? usdt.free : 0,
-        totalBalance: usdt ? usdt.total : 0,
-        locked: usdt ? usdt.locked : 0,
+        balance: usdt ? parseFloat(usdt.free) : 0,
+        totalBalance: usdt ? parseFloat(usdt.total) : 0,
+        locked: usdt ? parseFloat(usdt.locked) : 0,
         currency: 'USDT',
-        allBalances: balances.filter(b => b.total > 0),
+        allBalances: balances.filter(b => parseFloat(b.total) > 0),
         timestamp: Date.now()
       });
     }
