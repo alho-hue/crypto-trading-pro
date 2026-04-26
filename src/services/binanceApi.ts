@@ -1,5 +1,5 @@
 import CryptoJS from 'crypto-js';
-import { getDecryptedKey } from '../utils/crypto';
+import { getDecryptedKey, decryptValue } from '../utils/crypto';
 
 // Backend API URL
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -7,7 +7,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 // Utilise le proxy backend pour contourner CORS
 const BINANCE_API_URL = `${API_URL}/api/binance`;
 
-// Récupère les clés API chiffrées
+// Récupère les clés API chiffrées depuis localStorage
 const getBinanceApiKeys = () => {
   return {
     apiKey: getDecryptedKey('binance_api_key') || '',
@@ -15,10 +15,40 @@ const getBinanceApiKeys = () => {
   };
 };
 
-// Vérifie si on a une clé API configurée
+// Récupère les clés API chiffrées depuis le backend et les déchiffre
+const getBinanceApiKeysFromBackend = async () => {
+  const token = localStorage.getItem('token');
+  if (!token) return { apiKey: '', secretKey: '' };
+
+  try {
+    const res = await fetch(`${API_URL}/api/auth/me`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) return { apiKey: '', secretKey: '' };
+
+    const data = await res.json();
+    const encryptedApiKey = data.user?.encryptedApiKeys?.binanceApiKey;
+    const encryptedSecretKey = data.user?.encryptedApiKeys?.binanceSecretKey;
+
+    if (!encryptedApiKey || !encryptedSecretKey) {
+      return { apiKey: '', secretKey: '' };
+    }
+
+    // Déchiffrer les clés
+    const decryptedApiKey = decryptValue(encryptedApiKey);
+    const decryptedSecretKey = decryptValue(encryptedSecretKey);
+
+    return { apiKey: decryptedApiKey, secretKey: decryptedSecretKey };
+  } catch (error) {
+    console.error('Erreur récupération clés backend:', error);
+    return { apiKey: '', secretKey: '' };
+  }
+};
+
+// Vérifie si on a une clé API configurée (localStorage ou backend)
 const hasApiKey = () => {
-  const { apiKey, secretKey } = getBinanceApiKeys();
-  return !!(apiKey && secretKey);
+  const localKeys = getBinanceApiKeys();
+  return !!(localKeys.apiKey && localKeys.secretKey);
 };
 
 // Génère la signature HMAC pour les requêtes signées

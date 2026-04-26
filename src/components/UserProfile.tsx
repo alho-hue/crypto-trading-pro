@@ -30,14 +30,23 @@ import {
 import {
   testAuthenticatedConnection
 } from '../services/binanceApi';
+import { saveEncryptedKey, clearEncryptedKey } from '../utils/crypto';
 
 // Sauvegarde clés API Binance
 const saveBinanceKeys = async (apiKey: string, secretKey: string) => {
   const token = localStorage.getItem('token');
+  
+  // Chiffrer les clés côté client avant envoi
+  const encryptedApiKey = saveEncryptedKey('binance_api_key', apiKey);
+  const encryptedSecretKey = saveEncryptedKey('binance_secret_key', secretKey);
+  
   const res = await fetch(`${API_URL}/api/binance/keys`, {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ apiKey, secretKey })
+    body: JSON.stringify({ 
+      encryptedApiKey: localStorage.getItem('encrypted_binance_api_key'),
+      encryptedSecretKey: localStorage.getItem('encrypted_binance_secret_key')
+    })
   });
   return res.ok ? { success: true } : { success: false, message: 'Erreur sauvegarde clés' };
 };
@@ -538,6 +547,7 @@ export default function UserProfile() {
       
       if (result.success) {
         showToast.success('Clés API Binance sauvegardées', 'Succès');
+        // NE PAS effacer les clés - elles restent dans localStorage chiffrées
         setBinanceKeys({ apiKey: '', secretKey: '' });
         testBinanceConnection();
       } else {

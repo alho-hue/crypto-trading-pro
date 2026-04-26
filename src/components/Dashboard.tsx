@@ -15,6 +15,7 @@ import { PriceWithXOF, PriceCompact } from './PriceWithXOF';
 import { getBotStatus, getPerformanceStats, getOpenPositions, getTradeHistory } from '../services/autoTradingApi';
 import { getPaperBalance, getBotPositions, getBotStats, executeManualTradeLocal } from '../services/localAutoTrading';
 import { getActiveAlerts } from '../services/alertsApi';
+import { closePosition as apiClosePosition } from '../services/tradingApi';
 import { showToast } from '../stores/toastStore';
 import { analyzeWithEthernal, formatEthernalAnalysis } from '../services/ethernalAnalysis';
 import { ChartWatermark } from './Watermark';
@@ -675,11 +676,27 @@ export default function Dashboard() {
   
   // Note: La fonction executeTrade est maintenant inline dans le bouton pour utiliser executeManualTrade
   
-  const closePosition = useCallback(async (positionId: string) => {
+  const closePosition = useCallback(async (position: any) => {
     try {
-      showToast.info('La position a été fermée avec succès', 'Position fermée');
-      await loadPortfolioData();
+      showToast.info('Fermeture de la position en cours...', 'Patientez');
+      
+      // Appeler l'API pour fermer la position
+      const result = await apiClosePosition(
+        position.id,
+        position.symbol,
+        position.side === 'LONG' ? 'SELL' : 'BUY',  // Inverser le side pour fermer
+        position.quantity || position.size || 0,
+        false  // Mode réel par défaut, ajuster selon les paramètres utilisateur
+      );
+      
+      if (result.success) {
+        showToast.success(`Position fermée avec succès (PnL: ${result.pnl?.toFixed(2) || 0} USDT)`, 'Position fermée');
+        await loadPortfolioData();  // Recharger les données
+      } else {
+        showToast.error(result.error || 'Erreur lors de la fermeture', 'Erreur');
+      }
     } catch (error) {
+      console.error('Close position error:', error);
       showToast.error('Impossible de fermer la position', 'Erreur');
     }
   }, [loadPortfolioData]);
@@ -1394,7 +1411,7 @@ export default function Dashboard() {
                       </p>
                     </div>
                     <button
-                      onClick={() => closePosition(pos.id)}
+                      onClick={() => closePosition(pos)}
                       className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-xl transition-all hover:scale-105"
                       title="Fermer la position"
                     >

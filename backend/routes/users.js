@@ -34,9 +34,9 @@ router.post('/avatar', auth, upload.single('avatar'), async (req, res) => {
       return res.status(400).json({ error: 'Aucune image fournie' });
     }
 
-    // Construire l'URL absolue complète
-    const protocol = req.protocol;
-    const host = req.get('host');
+    // Construire l'URL absolue complète (HTTPS sur Render)
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    const host = req.headers['x-forwarded-host'] || req.headers.host || req.get('host');
     const avatarUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
 
     const user = await User.findByIdAndUpdate(
