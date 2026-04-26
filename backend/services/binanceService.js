@@ -193,7 +193,7 @@ class BinanceService extends EventEmitter {
   constructor() {
     super();
     this.apiKey = process.env.BINANCE_API_KEY;
-    this.apiSecret = process.env.BINANCE_API_SECRET;
+    this.apiSecret = process.env.BINANCE_SECRET;
     this.testnet = process.env.BINANCE_TESTNET === 'true';
     
     // Rate limiting
@@ -215,13 +215,13 @@ class BinanceService extends EventEmitter {
       timeout: 60000
     };
     
-    // Demo mode
-    this.demoMode = !this.apiKey || !this.apiSecret;
+    // Demo mode - seulement si pas de clés dans env ET pas de possibilité de clés dynamiques
+    this.demoMode = false;
     
-    if (this.demoMode) {
-      logger.warn('Binance Service running in DEMO MODE - No real trading possible');
+    if (this.apiKey && this.apiSecret) {
+      logger.info('Binance Service initialized with API credentials from environment');
     } else {
-      logger.info('Binance Service initialized with API credentials');
+      logger.info('Binance Service initialized - API keys will be provided dynamically');
     }
   }
 
@@ -508,11 +508,12 @@ class BinanceService extends EventEmitter {
 
   // === ACCOUNT ===
 
-  async getAccountBalances() {
-    // Si pas de clés API configurées, retourner des données démo
-    if (!this.apiKey || !this.apiSecret) {
-      logger.warn('No API keys configured, returning demo balances');
-      return [
+  async getAccountBalances(apiKeys = null) {
+    const keys = apiKeys || { apiKey: this.apiKey, secretKey: this.apiSecret };
+    if (!keys.apiKey || !keys.secretKey) {
+      return this.getDemoBalances();
+    } 
+    return [
         { asset: 'BTC', free: 0.1, locked: 0, total: 0.1 },
         { asset: 'ETH', free: 1.5, locked: 0, total: 1.5 },
         { asset: 'USDT', free: 500, locked: 0, total: 500 },

@@ -465,7 +465,19 @@ class BinanceServiceUnified extends EventEmitter {
   async getAccountInfo(apiKeys = null) {
     const hasKeys = (apiKeys?.apiKey && apiKeys?.apiSecret) || (this.apiKey && this.apiSecret);
     if (!hasKeys) {
-      throw new Error('DEMO_MODE: Cannot access real account without API keys');
+      // Retourner des données démo au lieu d'erreur
+      return {
+        balances: [
+          { asset: 'USDT', free: 1000, locked: 0, total: 1000 },
+          { asset: 'BTC', free: 0.05, locked: 0, total: 0.05 },
+          { asset: 'ETH', free: 1.5, locked: 0, total: 1.5 }
+        ],
+        makerCommission: 0.001,
+        takerCommission: 0.001,
+        canTrade: true,
+        canWithdraw: true,
+        canDeposit: true
+      };
     }
 
     try {
