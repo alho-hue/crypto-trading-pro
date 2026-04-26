@@ -189,9 +189,9 @@ router.post('/account', authenticateToken, asyncHandler(async (req, res) => {
     let secretKey = req.body.secretKey;
     
     // Si pas de clés dans le body, utiliser celles de l'utilisateur
-    if (!apiKey && !secretKey && req.user.binanceApiKey && req.user.binanceSecretKey) {
-      apiKey = req.user.binanceApiKey;
-      secretKey = req.user.binanceSecretKey;
+    if (!apiKey && !secretKey && req.user.encryptedApiKeys?.binanceApiKey && req.user.encryptedApiKeys?.binanceSecretKey) {
+      apiKey = req.user.encryptedApiKeys.binanceApiKey;
+      secretKey = req.user.encryptedApiKeys.binanceSecretKey;
       console.log('[POST /account] Using API keys from user profile');
     }
     
@@ -291,7 +291,7 @@ router.get('/balances', authenticateToken, asyncHandler(async (req, res) => {
     let balances;
     
     // Si l'utilisateur a des clés API configurées, les utiliser
-    if (req.user.binanceApiKey && req.user.binanceSecretKey) {
+    if (req.user.encryptedApiKeys?.binanceApiKey && req.user.encryptedApiKeys?.binanceSecretKey) {
       console.log('[GET /balances] Using user API keys');
       const axios = require('axios');
       const crypto = require('crypto');
@@ -301,14 +301,14 @@ router.get('/balances', authenticateToken, asyncHandler(async (req, res) => {
       const queryString = `timestamp=${timestamp}&recvWindow=${recvWindow}`;
       
       const signature = crypto
-        .createHmac('sha256', req.user.binanceSecretKey)
+        .createHmac('sha256', req.user.encryptedApiKeys.binanceSecretKey)
         .update(queryString)
         .digest('hex');
       
       const response = await axios.get(
         `https://api.binance.com/api/v3/account?${queryString}&signature=${signature}`,
         {
-          headers: { 'X-MBX-APIKEY': req.user.binanceApiKey },
+          headers: { 'X-MBX-APIKEY': req.user.encryptedApiKeys.binanceApiKey },
           timeout: 10000,
         }
       );
@@ -368,9 +368,9 @@ router.post('/order', authenticateToken, asyncHandler(async (req, res) => {
   let userSecretKey = secretKey;
   
   // Si pas de clés dans le body, utiliser celles du profil
-  if (!userApiKey && !userSecretKey && req.user.binanceApiKey && req.user.binanceSecretKey) {
-    userApiKey = req.user.binanceApiKey;
-    userSecretKey = req.user.binanceSecretKey;
+  if (!userApiKey && !userSecretKey && req.user.encryptedApiKeys?.binanceApiKey && req.user.encryptedApiKeys?.binanceSecretKey) {
+    userApiKey = req.user.encryptedApiKeys.binanceApiKey;
+    userSecretKey = req.user.encryptedApiKeys.binanceSecretKey;
     console.log('[POST /order] Using API keys from user profile');
   }
   
