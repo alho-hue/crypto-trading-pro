@@ -71,9 +71,11 @@ async function authenticateToken(req, res, next) {
       username: user.username,
       twoFactorEnabled: user.twoFactorEnabled,
       rateLimitTier: user.rateLimitTier,
-      // Clés API Binance (décryptées si présentes)
+      // Clés API Binance (en clair pour compatibilité)
       binanceApiKey: binanceApiKey,
-      binanceSecretKey: binanceSecretKey
+      binanceSecretKey: binanceSecretKey,
+      // Clés API Binance dans encryptedApiKeys (pour trading.js)
+      encryptedApiKeys: user.encryptedApiKeys || null
     };
     
     // Compatibilité avec routes qui utilisent req.userId

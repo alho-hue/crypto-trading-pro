@@ -83,10 +83,10 @@ router.post('/order/spot', optionalAuth, asyncHandler(async (req, res) => {
   }
 
   try {
-    // Récupérer les clés API de l'utilisateur
-    const userApiKeys = req.user?.binanceApiKey && req.user?.binanceSecretKey ? {
-      apiKey: req.user.binanceApiKey,
-      apiSecret: req.user.binanceSecretKey
+    // Récupérer les clés API de l'utilisateur depuis encryptedApiKeys
+    const userApiKeys = req.user?.encryptedApiKeys?.binanceApiKey && req.user?.encryptedApiKeys?.binanceSecretKey ? {
+      apiKey: req.user.encryptedApiKeys.binanceApiKey,
+      apiSecret: req.user.encryptedApiKeys.binanceSecretKey
     } : null;
     
     const result = await tradingService.safeExecuteTrade({
@@ -188,10 +188,10 @@ router.post('/order/futures', optionalAuth, asyncHandler(async (req, res) => {
   }
 
   try {
-    // Récupérer les clés API de l'utilisateur
-    const userApiKeys = req.user?.binanceApiKey && req.user?.binanceSecretKey ? {
-      apiKey: req.user.binanceApiKey,
-      apiSecret: req.user.binanceSecretKey
+    // Récupérer les clés API de l'utilisateur depuis encryptedApiKeys
+    const userApiKeys = req.user?.encryptedApiKeys?.binanceApiKey && req.user?.encryptedApiKeys?.binanceSecretKey ? {
+      apiKey: req.user.encryptedApiKeys.binanceApiKey,
+      apiSecret: req.user.encryptedApiKeys.binanceSecretKey
     } : null;
     
     const result = await tradingService.safeExecuteFuturesTrade({
@@ -253,10 +253,10 @@ router.post('/position/close', optionalAuth, asyncHandler(async (req, res) => {
   }
 
   try {
-    // Récupérer les clés API de l'utilisateur
-    const userApiKeys = req.user?.binanceApiKey && req.user?.binanceSecretKey ? {
-      apiKey: req.user.binanceApiKey,
-      apiSecret: req.user.binanceSecretKey
+    // Récupérer les clés API de l'utilisateur depuis encryptedApiKeys
+    const userApiKeys = req.user?.encryptedApiKeys?.binanceApiKey && req.user?.encryptedApiKeys?.binanceSecretKey ? {
+      apiKey: req.user.encryptedApiKeys.binanceApiKey,
+      apiSecret: req.user.encryptedApiKeys.binanceSecretKey
     } : null;
     
     const result = await tradingService.closePosition({
