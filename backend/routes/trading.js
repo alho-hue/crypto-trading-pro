@@ -84,12 +84,15 @@ router.post('/order/spot', optionalAuth, asyncHandler(async (req, res) => {
   }
 
   try {
-    // Récupérer les clés API de l'utilisateur depuis encryptedApiKeys
-    const userApiKeys = req.user?.encryptedApiKeys?.binanceApiKey && req.user?.encryptedApiKeys?.binanceSecretKey ? {
-      apiKey: req.user.encryptedApiKeys.binanceApiKey,
-      apiSecret: req.user.encryptedApiKeys.binanceSecretKey
-    } : null;
-    
+    // 🔥 Déchiffrer les clés API de l'utilisateur
+    let userApiKeys = null;
+    if (req.user?.encryptedApiKeys?.binanceApiKey && req.user?.encryptedApiKeys?.binanceSecretKey) {
+      userApiKeys = {
+        apiKey: securityService.decrypt(req.user.encryptedApiKeys.binanceApiKey),
+        apiSecret: securityService.decrypt(req.user.encryptedApiKeys.binanceSecretKey)
+      };
+    }
+
     const result = await tradingService.safeExecuteTrade({
       symbol: symbol.toUpperCase(),
       side: side.toUpperCase(),
@@ -189,12 +192,15 @@ router.post('/order/futures', optionalAuth, asyncHandler(async (req, res) => {
   }
 
   try {
-    // Récupérer les clés API de l'utilisateur depuis encryptedApiKeys
-    const userApiKeys = req.user?.encryptedApiKeys?.binanceApiKey && req.user?.encryptedApiKeys?.binanceSecretKey ? {
-      apiKey: req.user.encryptedApiKeys.binanceApiKey,
-      apiSecret: req.user.encryptedApiKeys.binanceSecretKey
-    } : null;
-    
+    // 🔥 Déchiffrer les clés API de l'utilisateur
+    let userApiKeys = null;
+    if (req.user?.encryptedApiKeys?.binanceApiKey && req.user?.encryptedApiKeys?.binanceSecretKey) {
+      userApiKeys = {
+        apiKey: securityService.decrypt(req.user.encryptedApiKeys.binanceApiKey),
+        apiSecret: securityService.decrypt(req.user.encryptedApiKeys.binanceSecretKey)
+      };
+    }
+
     const result = await tradingService.safeExecuteFuturesTrade({
       symbol: symbol.toUpperCase(),
       side: side.toUpperCase(),
@@ -254,12 +260,15 @@ router.post('/position/close', optionalAuth, asyncHandler(async (req, res) => {
   }
 
   try {
-    // Récupérer les clés API de l'utilisateur depuis encryptedApiKeys
-    const userApiKeys = req.user?.encryptedApiKeys?.binanceApiKey && req.user?.encryptedApiKeys?.binanceSecretKey ? {
-      apiKey: req.user.encryptedApiKeys.binanceApiKey,
-      apiSecret: req.user.encryptedApiKeys.binanceSecretKey
-    } : null;
-    
+    // 🔥 Déchiffrer les clés API de l'utilisateur
+    let userApiKeys = null;
+    if (req.user?.encryptedApiKeys?.binanceApiKey && req.user?.encryptedApiKeys?.binanceSecretKey) {
+      userApiKeys = {
+        apiKey: securityService.decrypt(req.user.encryptedApiKeys.binanceApiKey),
+        apiSecret: securityService.decrypt(req.user.encryptedApiKeys.binanceSecretKey)
+      };
+    }
+
     const result = await tradingService.closePosition({
       id: positionId,
       symbol: symbol.toUpperCase(),
@@ -459,12 +468,15 @@ router.get('/history', optionalAuth, asyncHandler(async (req, res) => {
     } else {
       // 🔥 RÉCUPÉRATION RÉELLE DE L'HISTORIQUE BINANCE
       try {
-        // Récupérer les clés API de l'utilisateur
-        const userApiKeys = req.user?.binanceApiKey && req.user?.binanceSecretKey ? {
-          apiKey: req.user.binanceApiKey,
-          apiSecret: req.user.binanceSecretKey
-        } : null;
-        
+        // 🔥 Déchiffrer les clés API de l'utilisateur
+        let userApiKeys = null;
+        if (req.user?.encryptedApiKeys?.binanceApiKey && req.user?.encryptedApiKeys?.binanceSecretKey) {
+          userApiKeys = {
+            apiKey: securityService.decrypt(req.user.encryptedApiKeys.binanceApiKey),
+            apiSecret: securityService.decrypt(req.user.encryptedApiKeys.binanceSecretKey)
+          };
+        }
+
         if (!userApiKeys) {
           return res.status(400).json({
             success: false,

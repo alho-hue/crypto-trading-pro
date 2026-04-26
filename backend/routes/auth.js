@@ -138,7 +138,7 @@ router.get('/me', async (req, res) => {
     }
     
     const decoded = jwt.verify(token, JWT_SECRET);
-    const user = await User.findById(decoded.userId)
+    const user = await User.findById(decoded.id)
       .populate('followers', 'username displayName avatar')
       .populate('following', 'username displayName avatar');
     
@@ -180,7 +180,7 @@ router.post('/logout', async (req, res) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     if (token) {
       const decoded = jwt.verify(token, JWT_SECRET);
-      await User.findByIdAndUpdate(decoded.userId, { isOnline: false });
+      await User.findByIdAndUpdate(decoded.id, { isOnline: false });
     }
     res.json({ message: 'Déconnexion réussie' });
   } catch (error) {

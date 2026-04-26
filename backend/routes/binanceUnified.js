@@ -8,6 +8,7 @@
 const express = require('express');
 const router = express.Router();
 const binanceService = require('../services/binanceServiceUnified');
+const securityService = require('../services/securityService'); // 🔥 Pour déchiffrer les clés API
 const { authenticateToken } = require('../middleware/auth');
 
 /**
@@ -188,11 +189,11 @@ router.post('/account', authenticateToken, asyncHandler(async (req, res) => {
     let apiKey = req.body.apiKey;
     let secretKey = req.body.secretKey;
     
-    // Si pas de clés dans le body, utiliser celles de l'utilisateur
+    // Si pas de clés dans le body, utiliser celles de l'utilisateur (déchiffrées)
     if (!apiKey && !secretKey && req.user.encryptedApiKeys?.binanceApiKey && req.user.encryptedApiKeys?.binanceSecretKey) {
-      apiKey = req.user.encryptedApiKeys.binanceApiKey;
-      secretKey = req.user.encryptedApiKeys.binanceSecretKey;
-      console.log('[POST /account] Using API keys from user profile');
+      apiKey = securityService.decrypt(req.user.encryptedApiKeys.binanceApiKey);
+      secretKey = securityService.decrypt(req.user.encryptedApiKeys.binanceSecretKey);
+      console.log('[POST /account] Using decrypted API keys from user profile');
     }
     
     if (apiKey && secretKey) {
@@ -290,25 +291,29 @@ router.get('/balances', authenticateToken, asyncHandler(async (req, res) => {
   try {
     let balances;
     
-    // Si l'utilisateur a des clés API configurées, les utiliser
+    // Si l'utilisateur a des clés API configurées, les utiliser (déchiffrées)
     if (req.user.encryptedApiKeys?.binanceApiKey && req.user.encryptedApiKeys?.binanceSecretKey) {
-      console.log('[GET /balances] Using user API keys');
+      console.log('[GET /balances] Using decrypted user API keys');
       const axios = require('axios');
       const crypto = require('crypto');
-      
+
       const timestamp = Date.now();
       const recvWindow = 60000;
       const queryString = `timestamp=${timestamp}&recvWindow=${recvWindow}`;
-      
+
+      // 🔥 Déchiffrer les clés avant utilisation
+      const decryptedApiKey = securityService.decrypt(req.user.encryptedApiKeys.binanceApiKey);
+      const decryptedSecretKey = securityService.decrypt(req.user.encryptedApiKeys.binanceSecretKey);
+
       const signature = crypto
-        .createHmac('sha256', req.user.encryptedApiKeys.binanceSecretKey)
+        .createHmac('sha256', decryptedSecretKey)
         .update(queryString)
         .digest('hex');
-      
+
       const response = await axios.get(
         `https://api.binance.com/api/v3/account?${queryString}&signature=${signature}`,
         {
-          headers: { 'X-MBX-APIKEY': req.user.encryptedApiKeys.binanceApiKey },
+          headers: { 'X-MBX-APIKEY': decryptedApiKey },
           timeout: 10000,
         }
       );
@@ -367,11 +372,11 @@ router.post('/order', authenticateToken, asyncHandler(async (req, res) => {
   let userApiKey = apiKey;
   let userSecretKey = secretKey;
   
-  // Si pas de clés dans le body, utiliser celles du profil
+  // Si pas de clés dans le body, utiliser celles du profil (déchiffrées)
   if (!userApiKey && !userSecretKey && req.user.encryptedApiKeys?.binanceApiKey && req.user.encryptedApiKeys?.binanceSecretKey) {
-    userApiKey = req.user.encryptedApiKeys.binanceApiKey;
-    userSecretKey = req.user.encryptedApiKeys.binanceSecretKey;
-    console.log('[POST /order] Using API keys from user profile');
+    userApiKey = securityService.decrypt(req.user.encryptedApiKeys.binanceApiKey);
+    userSecretKey = securityService.decrypt(req.user.encryptedApiKeys.binanceSecretKey);
+    console.log('[POST /order] Using decrypted API keys from user profile');
   }
   
   // 🔥 Si clés API disponibles, appeler Binance directement
