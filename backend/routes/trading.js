@@ -379,9 +379,14 @@ router.all('/balance', optionalAuth, asyncHandler(async (req, res) => {
 
   } catch (error) {
     console.error('[Trading] Balance error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message || 'Échec de la récupération du solde',
+    // 🔥 En cas d'erreur, retourner le mode démo pour éviter de bloquer l'UI
+    const demoBalance = await tradingService.demoManager.getBalance();
+    res.json({
+      success: true,
+      demoMode: true,
+      balance: demoBalance,
+      currency: 'USDT',
+      error: error.message,
       timestamp: Date.now()
     });
   }
