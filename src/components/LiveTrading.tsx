@@ -33,7 +33,7 @@ export default function LiveTrading() {
     getMaxPositionSize,
     validateTrade,
     clearError
-  } = useTrading({ defaultIsDemo: true });
+  } = useTrading({ defaultIsDemo: false });
   
   // États du formulaire
   const [activeTab, setActiveTab] = useState<'trade' | 'positions'>('trade');

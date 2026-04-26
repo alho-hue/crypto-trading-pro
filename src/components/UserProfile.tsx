@@ -863,7 +863,7 @@ function OverviewTab({ user, walletState, devices, activityLogs, onEdit, onAvata
             <div className="flex justify-between">
               <span className="text-gray-400">Total FCFA</span>
               <span className="font-semibold text-crypto-green">
-                {walletState?.totalXOF ? formatXOF(walletState.totalXOF) : formatXOF(0)}
+                {walletState?.totalXOF ? walletState.totalXOF.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + ' XOF' : '0 XOF'}
               </span>
             </div>
           </div>
@@ -1097,7 +1097,7 @@ function WalletTab({
           <div className="p-4 bg-gradient-to-r from-crypto-green/20 to-crypto-blue/20 rounded-lg">
             <p className="text-sm text-gray-400 mb-1">Total en FCFA</p>
             <p className="text-2xl font-bold text-crypto-green">
-              {walletState?.totalXOF ? formatXOF(walletState.totalXOF) : formatXOF(0)}
+              {walletState?.totalXOF ? walletState.totalXOF.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + ' XOF' : '0 XOF'}
             </p>
           </div>
         </div>
@@ -1230,7 +1230,7 @@ function WalletTab({
             
             <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
               <p className="text-sm text-yellow-400">
-                Balance disponible: {walletState?.totalXOF ? formatXOF(walletState.totalXOF) : formatXOF(0)}
+                Balance disponible: {walletState?.totalXOF ? walletState.totalXOF.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + ' XOF' : '0 XOF'}
               </p>
             </div>
             
