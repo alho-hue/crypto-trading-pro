@@ -253,10 +253,10 @@ export async function closePosition(
  */
 export async function getTradingBalance(isDemo: boolean = false): Promise<Balance> {
   try {
-    // Pour le mode réel, envoyer les clés API déchiffrées
+    // Pour le mode réel, envoyer les clés API depuis localStorage
     const body = isDemo ? undefined : {
-      apiKey: getDecryptedKey('binance_api_key'),
-      secretKey: getDecryptedKey('binance_secret_key')
+      apiKey: localStorage.getItem('binance_api_key') || '',
+      secretKey: localStorage.getItem('binance_secret_key') || ''
     };
 
     const result = await authenticatedRequest(

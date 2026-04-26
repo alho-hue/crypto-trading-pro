@@ -7,11 +7,11 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 // Utilise le proxy backend pour contourner CORS
 const BINANCE_API_URL = `${API_URL}/api/binance`;
 
-// Récupère les clés API chiffrées depuis localStorage
+// Récupère les clés API depuis localStorage (en clair)
 const getBinanceApiKeys = () => {
   return {
-    apiKey: getDecryptedKey('binance_api_key') || '',
-    secretKey: getDecryptedKey('binance_secret_key') || '',
+    apiKey: localStorage.getItem('binance_api_key') || '',
+    secretKey: localStorage.getItem('binance_secret_key') || '',
   };
 };
 

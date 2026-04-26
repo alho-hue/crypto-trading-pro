@@ -20,17 +20,15 @@ async function getUserBinanceKeys(req) {
     return { apiKey: bodyApiKey, secretKey: bodySecretKey };
   }
   
-  // PRIORITÉ 2: Clés chiffrées depuis le JWT ou req.user (si stockées dans MongoDB)
-  // Le backend ne peut pas déchiffrer, donc retourne les clés chiffrées
-  // Le frontend devra les déchiffrer localement
-  const userEncryptedApiKey = req.user?.encryptedApiKeys?.binanceApiKey;
-  const userEncryptedSecretKey = req.user?.encryptedApiKeys?.binanceSecretKey;
+  // PRIORITÉ 2: Clés depuis le JWT ou req.user (si stockées dans MongoDB)
+  const userApiKey = req.user?.encryptedApiKeys?.binanceApiKey;
+  const userSecretKey = req.user?.encryptedApiKeys?.binanceSecretKey;
   
-  if (userEncryptedApiKey && userEncryptedSecretKey) {
-    console.log('[BINANCE] Using encrypted API keys from user profile');
+  if (userApiKey && userSecretKey) {
+    console.log('[BINANCE] Using API keys from user profile');
     return { 
-      encryptedApiKey: userEncryptedApiKey, 
-      encryptedSecretKey: userEncryptedSecretKey 
+      apiKey: userApiKey, 
+      secretKey: userSecretKey 
     };
   }
   
@@ -492,24 +490,24 @@ router.get('/price', async (req, res) => {
 // 🔥 POST /keys - Sauvegarder les clés API Binance dans le profil utilisateur
 router.post('/keys', authenticateToken, async (req, res) => {
   try {
-    const { encryptedApiKey, encryptedSecretKey } = req.body;
+    const { apiKey, secretKey } = req.body;
     
-    if (!encryptedApiKey || !encryptedSecretKey) {
+    if (!apiKey || !secretKey) {
       return res.status(400).json({
         success: false,
         message: 'Clés API et secrète requises'
       });
     }
     
-    // Validation basique des clés chiffrées (doivent être des strings)
-    if (typeof encryptedApiKey !== 'string' || typeof encryptedSecretKey !== 'string') {
+    // Validation basique des clés Binance
+    if (apiKey.length < 32 || secretKey.length < 32) {
       return res.status(400).json({
         success: false,
         message: 'Format de clé API invalide'
       });
     }
     
-    // Mettre à jour l'utilisateur avec les clés API chiffrées
+    // Mettre à jour l'utilisateur avec les clés API
     const User = require('../models/User');
     const user = await User.findById(req.user._id || req.user.id);
     
@@ -520,15 +518,15 @@ router.post('/keys', authenticateToken, async (req, res) => {
       });
     }
     
-    // Stocker les clés chiffrées dans encryptedApiKeys
+    // Stocker les clés dans encryptedApiKeys (en clair pour l'instant, à chiffrer plus tard)
     if (!user.encryptedApiKeys) {
       user.encryptedApiKeys = {};
     }
-    user.encryptedApiKeys.binanceApiKey = encryptedApiKey;
-    user.encryptedApiKeys.binanceSecretKey = encryptedSecretKey;
+    user.encryptedApiKeys.binanceApiKey = apiKey;
+    user.encryptedApiKeys.binanceSecretKey = secretKey;
     await user.save();
     
-    console.log('[BINANCE] Clés API chiffrées sauvegardées pour user:', user._id);
+    console.log('[BINANCE] Clés API sauvegardées pour user:', user._id);
     
     res.json({
       success: true,

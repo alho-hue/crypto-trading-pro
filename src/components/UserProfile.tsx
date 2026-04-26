@@ -36,17 +36,15 @@ import { saveEncryptedKey, clearEncryptedKey } from '../utils/crypto';
 const saveBinanceKeys = async (apiKey: string, secretKey: string) => {
   const token = localStorage.getItem('token');
   
-  // Chiffrer les clés côté client avant envoi
-  const encryptedApiKey = saveEncryptedKey('binance_api_key', apiKey);
-  const encryptedSecretKey = saveEncryptedKey('binance_secret_key', secretKey);
+  // Sauvegarder en clair dans localStorage pour utilisation immédiate
+  localStorage.setItem('binance_api_key', apiKey);
+  localStorage.setItem('binance_secret_key', secretKey);
   
+  // Envoyer en clair au backend (HTTPS sécurise le transport)
   const res = await fetch(`${API_URL}/api/binance/keys`, {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ 
-      encryptedApiKey,
-      encryptedSecretKey
-    })
+    body: JSON.stringify({ apiKey, secretKey })
   });
   return res.ok ? { success: true } : { success: false, message: 'Erreur sauvegarde clés' };
 };
