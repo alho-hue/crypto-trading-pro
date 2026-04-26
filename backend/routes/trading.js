@@ -350,9 +350,9 @@ router.all('/balance', optionalAuth, asyncHandler(async (req, res) => {
     } else {
       // Récupérer les clés API depuis le body ou headers
       const apiKey = req.body?.apiKey || req.headers['x-binance-api-key'];
-      const secretKey = req.body?.secretKey || req.headers['x-binance-secret-key'];
+      const apiSecret = req.body?.secretKey || req.headers['x-binance-secret-key'];
 
-      const apiKeys = (apiKey && secretKey) ? { apiKey, secretKey } : null;
+      const apiKeys = (apiKey && apiSecret) ? { apiKey, apiSecret } : null;
       const balances = await binanceService.getBalances(apiKeys);
       const usdt = balances.find(b => b.asset === 'USDT');
 
