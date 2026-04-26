@@ -125,8 +125,19 @@ async function optionalAuth(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = { id: decoded.id, email: decoded.email };
-    req.userId = decoded.id;  // Compatibilité
+    // 🔥 Charger l'utilisateur complet avec les clés API
+    const user = await User.findById(decoded.id);
+    if (user) {
+      req.user = {
+        id: user._id,
+        email: user.email,
+        username: user.username,
+        encryptedApiKeys: user.encryptedApiKeys || null
+      };
+    } else {
+      req.user = { id: decoded.id, email: decoded.email };
+    }
+    req.userId = decoded.id;
     next();
   } catch {
     req.user = null;

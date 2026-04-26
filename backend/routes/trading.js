@@ -348,11 +348,17 @@ router.all('/balance', optionalAuth, asyncHandler(async (req, res) => {
         timestamp: Date.now()
       });
     } else {
-      // Récupérer les clés API depuis le body ou headers
-      const apiKey = req.body?.apiKey || req.headers['x-binance-api-key'];
-      const apiSecret = req.body?.secretKey || req.headers['x-binance-secret-key'];
+      // 🔥 Récupérer les clés API depuis l'utilisateur authentifié OU le body/headers
+      const userApiKey = req.user?.encryptedApiKeys?.binanceApiKey;
+      const userApiSecret = req.user?.encryptedApiKeys?.binanceSecretKey;
+      const bodyApiKey = req.body?.apiKey || req.headers['x-binance-api-key'];
+      const bodyApiSecret = req.body?.secretKey || req.headers['x-binance-secret-key'];
+
+      const apiKey = userApiKey || bodyApiKey;
+      const apiSecret = userApiSecret || bodyApiSecret;
 
       const apiKeys = (apiKey && apiSecret) ? { apiKey, apiSecret } : null;
+      console.log('[Trading] Using API keys:', apiKeys ? 'YES' : 'NO', '- User:', req.user ? req.user.id : 'none');
       const balances = await binanceService.getBalances(apiKeys);
       const usdt = balances.find(b => b.asset === 'USDT');
 
