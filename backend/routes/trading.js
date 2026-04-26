@@ -10,6 +10,7 @@ const router = express.Router();
 const { authenticateToken, optionalAuth } = require('../middleware/auth');
 const tradingService = require('../services/tradingService');
 const binanceService = require('../services/binanceServiceUnified');
+const securityService = require('../services/securityService'); // 🔥 Pour déchiffrer les clés API
 
 /**
  * Middleware pour gérer les erreurs async
@@ -349,14 +350,23 @@ router.all('/balance', optionalAuth, asyncHandler(async (req, res) => {
         timestamp: Date.now()
       });
     } else {
-      // 🔥 Récupérer les clés API depuis l'utilisateur authentifié OU le body/headers
-      const userApiKey = req.user?.encryptedApiKeys?.binanceApiKey;
-      const userApiSecret = req.user?.encryptedApiKeys?.binanceSecretKey;
-      const bodyApiKey = req.body?.apiKey || req.headers['x-binance-api-key'];
-      const bodyApiSecret = req.body?.secretKey || req.headers['x-binance-secret-key'];
+      // 🔥 Récupérer les clés API depuis l'utilisateur authentifié (déchiffrées) OU le body/headers
+      let apiKey, apiSecret;
 
-      const apiKey = userApiKey || bodyApiKey;
-      const apiSecret = userApiSecret || bodyApiSecret;
+      // 1. Essayer d'abord les clés chiffrées de l'utilisateur (les plus sécurisées)
+      if (req.user?.encryptedApiKeys?.binanceApiKey && req.user?.encryptedApiKeys?.binanceSecretKey) {
+        console.log('[Trading] Decrypting user API keys from database...');
+        apiKey = securityService.decrypt(req.user.encryptedApiKeys.binanceApiKey);
+        apiSecret = securityService.decrypt(req.user.encryptedApiKeys.binanceSecretKey);
+        console.log('[Trading] Decrypted keys - apiKey present:', !!apiKey, '- apiSecret present:', !!apiSecret);
+      }
+
+      // 2. Sinon, utiliser les clés envoyées dans le body/headers (pour tests ou premier setup)
+      if (!apiKey || !apiSecret) {
+        apiKey = req.body?.apiKey || req.headers['x-binance-api-key'];
+        apiSecret = req.body?.secretKey || req.headers['x-binance-secret-key'];
+        console.log('[Trading] Using API keys from request - apiKey present:', !!apiKey, '- apiSecret present:', !!apiSecret);
+      }
 
       const apiKeys = (apiKey && apiSecret) ? { apiKey, apiSecret } : null;
       console.log('[Trading] Using API keys:', apiKeys ? 'YES' : 'NO', '- User:', req.user ? req.user.id : 'none');
@@ -379,14 +389,10 @@ router.all('/balance', optionalAuth, asyncHandler(async (req, res) => {
 
   } catch (error) {
     console.error('[Trading] Balance error:', error);
-    // 🔥 En cas d'erreur, retourner le mode démo pour éviter de bloquer l'UI
-    const demoBalance = await tradingService.demoManager.getBalance();
-    res.json({
-      success: true,
-      demoMode: true,
-      balance: demoBalance,
-      currency: 'USDT',
-      error: error.message,
+    // 🔥 Retourner l'erreur réelle pour debugging (on ne cache plus l'erreur)
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Échec de la récupération du solde',
       timestamp: Date.now()
     });
   }
