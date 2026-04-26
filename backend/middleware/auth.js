@@ -118,15 +118,22 @@ async function optionalAuth(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
+  console.log('[optionalAuth] Token present:', !!token);
+
   if (!token) {
+    console.log('[optionalAuth] No token, continuing without user');
     req.user = null;
     return next();
   }
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
+    console.log('[optionalAuth] Token decoded, userId:', decoded.id);
+
     // 🔥 Charger l'utilisateur complet avec les clés API
     const user = await User.findById(decoded.id);
+    console.log('[optionalAuth] User found:', !!user, '- has encryptedApiKeys:', !!(user?.encryptedApiKeys));
+
     if (user) {
       req.user = {
         id: user._id,
@@ -139,7 +146,8 @@ async function optionalAuth(req, res, next) {
     }
     req.userId = decoded.id;
     next();
-  } catch {
+  } catch (error) {
+    console.log('[optionalAuth] Error:', error.message);
     req.user = null;
     next();
   }

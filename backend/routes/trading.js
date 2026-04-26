@@ -332,7 +332,8 @@ router.get('/positions', optionalAuth, asyncHandler(async (req, res) => {
 router.all('/balance', optionalAuth, asyncHandler(async (req, res) => {
   const { isDemo = false } = req.query;
 
-  console.log('[Trading] Balance request - isDemo:', isDemo);
+  console.log('[Trading] Balance request - isDemo:', isDemo, '- req.user:', req.user ? 'YES' : 'NO');
+  console.log('[Trading] Body keys:', req.body?.apiKey ? 'YES' : 'NO', '- Headers keys:', req.headers['x-binance-api-key'] ? 'YES' : 'NO');
 
   try {
     let balance;
