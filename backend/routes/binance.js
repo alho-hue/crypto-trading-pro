@@ -53,8 +53,8 @@ function generateSignature(queryString, secretKey) {
     .digest('hex');
 }
 
-// Get account info (SPOT)
-router.get('/account', authenticateToken, async (req, res) => {
+// Get account info (SPOT) - Accept GET and POST
+router.all('/account', authenticateToken, async (req, res) => {
   try {
     const keys = await getUserBinanceKeys(req);
     if (!keys) {
