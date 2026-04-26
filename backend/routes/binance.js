@@ -20,12 +20,15 @@ async function getUserBinanceKeys(req) {
     return { apiKey: bodyApiKey, secretKey: bodySecretKey };
   }
   
-  // PRIORITÉ 2: Clés depuis le JWT (si stockées dans le token)
-  if (req.user?.binanceApiKey && req.user?.binanceSecretKey) {
-    console.log('[BINANCE] Using API keys from JWT');
+  // PRIORITÉ 2: Clés depuis le JWT ou req.user (si stockées dans le token ou MongoDB)
+  const userApiKey = req.user?.encryptedApiKeys?.binanceApiKey || req.user?.binanceApiKey;
+  const userSecretKey = req.user?.encryptedApiKeys?.binanceSecretKey || req.user?.binanceSecretKey;
+  
+  if (userApiKey && userSecretKey) {
+    console.log('[BINANCE] Using API keys from user profile');
     return { 
-      apiKey: req.user.binanceApiKey, 
-      secretKey: req.user.binanceSecretKey 
+      apiKey: userApiKey, 
+      secretKey: userSecretKey 
     };
   }
   
@@ -480,6 +483,61 @@ router.get('/price', async (req, res) => {
     res.status(400).json({
       error: 'Failed to fetch price',
       details: error.response?.data?.msg || error.message,
+    });
+  }
+});
+
+// 🔥 POST /keys - Sauvegarder les clés API Binance dans le profil utilisateur
+router.post('/keys', authenticateToken, async (req, res) => {
+  try {
+    const { apiKey, secretKey } = req.body;
+    
+    if (!apiKey || !secretKey) {
+      return res.status(400).json({
+        success: false,
+        message: 'Clés API et secrète requises'
+      });
+    }
+    
+    // Validation basique des clés Binance
+    if (apiKey.length < 32 || secretKey.length < 32) {
+      return res.status(400).json({
+        success: false,
+        message: 'Format de clé API invalide'
+      });
+    }
+    
+    // Mettre à jour l'utilisateur avec les clés API
+    const User = require('../models/User');
+    const user = await User.findById(req.user._id || req.user.id);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Utilisateur non trouvé'
+      });
+    }
+    
+    // Stocker les clés dans encryptedApiKeys (chiffrées côté client déjà)
+    if (!user.encryptedApiKeys) {
+      user.encryptedApiKeys = {};
+    }
+    user.encryptedApiKeys.binanceApiKey = apiKey;
+    user.encryptedApiKeys.binanceSecretKey = secretKey;
+    await user.save();
+    
+    console.log('[BINANCE] Clés API sauvegardées pour user:', user._id);
+    
+    res.json({
+      success: true,
+      message: 'Clés API sauvegardées avec succès'
+    });
+    
+  } catch (error) {
+    console.error('[BINANCE] Erreur sauvegarde clés:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la sauvegarde des clés API'
     });
   }
 });

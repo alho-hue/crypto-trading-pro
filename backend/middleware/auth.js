@@ -30,21 +30,16 @@ async function authenticateToken(req, res, next) {
       return res.status(401).json({ error: 'User not found' });
     }
     
-    // Récupérer et déchiffrer les clés API Binance si présentes
+    // Récupérer les clés API Binance (chiffrées côté client, utilisées telles quelles)
     let binanceApiKey = null;
     let binanceSecretKey = null;
     
     if (user.encryptedApiKeys && user.encryptedApiKeys.binanceApiKey && user.encryptedApiKeys.binanceSecretKey) {
-      try {
-        binanceApiKey = securityService.decryptApiKey(user.encryptedApiKeys.binanceApiKey);
-        binanceSecretKey = securityService.decryptApiKey(user.encryptedApiKeys.binanceSecretKey);
-        
-        if (binanceApiKey && binanceSecretKey) {
-          console.log(`[Auth] Clés API Binance chargées pour ${user.username}`);
-        }
-      } catch (decryptError) {
-        console.error('[Auth] Erreur déchiffrement clés API:', decryptError.message);
-      }
+      // Les clés sont chiffrées côté client, on les utilise telles quelles
+      // Le client les déchiffrera avec getDecryptedKey()
+      binanceApiKey = user.encryptedApiKeys.binanceApiKey;
+      binanceSecretKey = user.encryptedApiKeys.binanceSecretKey;
+      console.log(`[Auth] Clés API Binance (chiffrées) chargées pour ${user.username}`);
     }
 
     // Check if account is locked
