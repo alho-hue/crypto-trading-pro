@@ -786,7 +786,7 @@ function OverviewTab({ user, walletState, devices, activityLogs, onEdit, onAvata
             <div className="w-24 h-24 rounded-full bg-gradient-to-br from-crypto-blue to-crypto-purple flex items-center justify-center text-3xl font-bold text-white overflow-hidden">
               {user?.avatar ? (
                 <img
-                  src={user.avatar}
+                  src={user.avatar.startsWith('http') ? user.avatar.replace(/^http:/, 'https:') : user.avatar}
                   alt={user.displayName || user.username}
                   className="w-full h-full object-cover"
                   onError={(e) => {

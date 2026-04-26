@@ -503,7 +503,7 @@ export default function UserProfileSocial({ userId, username, onClose, onStartDM
                     >
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium">
                         {user.avatar ? (
-                          <img src={user.avatar} alt="" className="w-full h-full rounded-full object-cover" />
+                          <img src={user.avatar.startsWith('http') ? user.avatar.replace(/^http:/, 'https:') : user.avatar} alt="" className="w-full h-full rounded-full object-cover" />
                         ) : (
                           user.displayName?.[0]?.toUpperCase() || '?'
                         )}
@@ -531,7 +531,7 @@ export default function UserProfileSocial({ userId, username, onClose, onStartDM
                     >
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium">
                         {user.avatar ? (
-                          <img src={user.avatar} alt="" className="w-full h-full rounded-full object-cover" />
+                          <img src={user.avatar.startsWith('http') ? user.avatar.replace(/^http:/, 'https:') : user.avatar} alt="" className="w-full h-full rounded-full object-cover" />
                         ) : (
                           user.displayName?.[0]?.toUpperCase() || '?'
                         )}
