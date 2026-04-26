@@ -33,7 +33,7 @@ const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
-    
+
     if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
       callback(null, true);
     } else {
@@ -44,12 +44,14 @@ const corsOptions = {
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: [
-    'Content-Type', 
+    'Content-Type',
     'Authorization',
     'X-MBX-APIKEY',
     'x-mbx-apikey',
     'X-Binance-Secret',
-    'x-binance-secret'
+    'x-binance-secret',
+    'x-binance-api-key',
+    'x-binance-secret-key'
   ]
 };
 
