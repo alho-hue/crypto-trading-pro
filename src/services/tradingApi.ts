@@ -252,7 +252,42 @@ export async function closePosition(
  */
 export async function getTradingBalance(isDemo: boolean = false): Promise<Balance> {
   try {
-    const result = await authenticatedRequest(`/api/trading/balance?isDemo=${isDemo ? 'true' : 'false'}`);
+    // Pour le mode réel, envoyer les clés API déchiffrées
+    const body = isDemo ? undefined : {
+      apiKey: localStorage.getItem('encrypted_binance_api_key') ? 
+        // Déchiffrer les clés depuis localStorage
+        (() => {
+          const encrypted = localStorage.getItem('encrypted_binance_api_key');
+          if (!encrypted) return '';
+          try {
+            const CryptoJS = require('crypto-js');
+            const key = CryptoJS.SHA256(navigator.userAgent + window.location.hostname).toString().slice(0, 32);
+            const bytes = CryptoJS.AES.decrypt(encrypted, key);
+            return bytes.toString(CryptoJS.enc.Utf8);
+          } catch {
+            return '';
+          }
+        })() : '',
+      secretKey: localStorage.getItem('encrypted_binance_secret_key') ?
+        (() => {
+          const encrypted = localStorage.getItem('encrypted_binance_secret_key');
+          if (!encrypted) return '';
+          try {
+            const CryptoJS = require('crypto-js');
+            const key = CryptoJS.SHA256(navigator.userAgent + window.location.hostname).toString().slice(0, 32);
+            const bytes = CryptoJS.AES.decrypt(encrypted, key);
+            return bytes.toString(CryptoJS.enc.Utf8);
+          } catch {
+            return '';
+          }
+        })() : ''
+    };
+
+    const result = await authenticatedRequest(
+      `/api/trading/balance?isDemo=${isDemo ? 'true' : 'false'}`,
+      isDemo ? 'GET' : 'POST',
+      body
+    );
 
     return {
       balance: result.balance,

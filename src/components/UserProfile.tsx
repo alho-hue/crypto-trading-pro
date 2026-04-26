@@ -44,8 +44,8 @@ const saveBinanceKeys = async (apiKey: string, secretKey: string) => {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ 
-      encryptedApiKey: localStorage.getItem('encrypted_binance_api_key'),
-      encryptedSecretKey: localStorage.getItem('encrypted_binance_secret_key')
+      encryptedApiKey,
+      encryptedSecretKey
     })
   });
   return res.ok ? { success: true } : { success: false, message: 'Erreur sauvegarde clés' };

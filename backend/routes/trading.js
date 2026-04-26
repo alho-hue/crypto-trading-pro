@@ -326,10 +326,10 @@ router.get('/positions', optionalAuth, asyncHandler(async (req, res) => {
 }));
 
 /**
- * GET /api/trading/balance
+ * GET/POST /api/trading/balance
  * Récupérer le solde du compte
  */
-router.get('/balance', optionalAuth, asyncHandler(async (req, res) => {
+router.all('/balance', optionalAuth, asyncHandler(async (req, res) => {
   const { isDemo = false } = req.query;
 
   console.log('[Trading] Balance request - isDemo:', isDemo);
@@ -348,7 +348,12 @@ router.get('/balance', optionalAuth, asyncHandler(async (req, res) => {
         timestamp: Date.now()
       });
     } else {
-      const balances = await binanceService.getBalances();
+      // Récupérer les clés API depuis le body ou headers
+      const apiKey = req.body?.apiKey || req.headers['x-binance-api-key'];
+      const secretKey = req.body?.secretKey || req.headers['x-binance-secret-key'];
+      
+      const apiKeys = (apiKey && secretKey) ? { apiKey, secretKey } : null;
+      const balances = await binanceService.getBalances(apiKeys);
       const usdt = balances.find(b => b.asset === 'USDT');
 
       console.log('[Trading] Real balance:', usdt ? usdt.free : 0);

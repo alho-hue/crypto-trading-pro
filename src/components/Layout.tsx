@@ -323,8 +323,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 {currentUser.avatar ? (
                   <img
                     src={currentUser.avatar.startsWith('http')
-                      ? currentUser.avatar
-                      : `${API_URL.replace('/api', '')}${currentUser.avatar}`}
+                      ? currentUser.avatar.replace(/^http:/, 'https:')
+                      : `${API_URL.replace('/api', '').replace(/^http:/, 'https:')}${currentUser.avatar}`}
                     alt="Avatar"
                     className="w-full h-full object-cover"
                     onError={(e) => {

@@ -155,10 +155,12 @@ export async function fetchOpenOrders(symbol?: string): Promise<any[]> {
   const { apiKey, secretKey } = getBinanceApiKeys();
 
   const response = await fetch(`${BINANCE_API_URL}/orders/open${symbol ? `?symbol=${symbol}` : ''}`, {
+    method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
-    }
+    },
+    body: JSON.stringify({ apiKey, secretKey })
   });
 
   if (!response.ok) {
@@ -180,11 +182,15 @@ export async function fetchMyTrades(symbol: string, limit: number = 500): Promis
     throw new Error('JWT token required');
   }
 
+  const { apiKey, secretKey } = getBinanceApiKeys();
+
   const response = await fetch(`${BINANCE_API_URL}/orders/history?symbol=${symbol}&limit=${limit}`, {
+    method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
-    }
+    },
+    body: JSON.stringify({ apiKey, secretKey })
   });
 
   if (!response.ok) {

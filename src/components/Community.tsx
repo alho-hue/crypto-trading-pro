@@ -991,7 +991,7 @@ export default function Community() {
         userId: currentUser.id,
         username: currentUser.username,
         displayName: currentUser.displayName || currentUser.username,
-        avatar: currentUser.avatar || `https://ui-avatars.com/api/?name=${currentUser.username}&background=random`,
+        avatar: currentUser.avatar?.replace(/^http:/, 'https:') || `https://ui-avatars.com/api/?name=${currentUser.username}&background=random`,
         replyTo: replyingTo,
         attachments,
         mentions: newMessage.match(/@(\w+)/g)?.map(m => m.slice(1)) || []
@@ -1007,7 +1007,7 @@ export default function Community() {
         userId: currentUser.id,
         username: currentUser.username,
         displayName: currentUser.displayName || currentUser.username,
-        avatar: currentUser.avatar || `https://ui-avatars.com/api/?name=${currentUser.username}&background=random`,
+        avatar: currentUser.avatar?.replace(/^http:/, 'https:') || `https://ui-avatars.com/api/?name=${currentUser.username}&background=random`,
         content: newMessage,
         channelId: activeChannel,
         likes: 0,
@@ -1356,7 +1356,7 @@ export default function Community() {
       userId: currentUser.id,
       username: currentUser.username,
       displayName: currentUser.displayName || currentUser.username,
-      avatar: currentUser.avatar || `https://ui-avatars.com/api/?name=${currentUser.username}&background=random`,
+      avatar: currentUser.avatar?.replace(/^http:/, 'https:') || `https://ui-avatars.com/api/?name=${currentUser.username}&background=random`,
       replyTo: null,
       attachments: [{
         type: 'image' as const,
@@ -1581,7 +1581,7 @@ export default function Community() {
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-sm font-bold text-white shadow-lg overflow-hidden">
               {currentUser?.avatar ? (
                 <img
-                  src={currentUser.avatar}
+                  src={currentUser.avatar.replace(/^http:/, 'https:')}
                   alt={currentUser.displayName || currentUser.username}
                   className="w-full h-full object-cover"
                   onError={(e) => {

@@ -25,10 +25,11 @@ export const decryptValue = (encrypted: string): string => {
   }
 };
 
-// Sauvegarder une clé API chiffrée
-export const saveEncryptedKey = (keyName: string, value: string): void => {
+// Sauvegarder une clé API chiffrée et retourner la valeur chiffrée
+export const saveEncryptedKey = (keyName: string, value: string): string => {
   const encrypted = encryptValue(value);
   localStorage.setItem(`encrypted_${keyName}`, encrypted);
+  return encrypted;
 };
 
 // Récupérer une clé API déchiffrée
