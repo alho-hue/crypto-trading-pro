@@ -100,11 +100,25 @@ const tradingLimiter = rateLimit({
   max: process.env.NODE_ENV === 'production' ? 300 : 1000, // 300 req/min en prod, 1000 en dev
   message: { error: 'Too many trading requests, please try again later.' },
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
+  handler: (req, res) => {
+    console.log('[tradingLimiter] Rate limit exceeded for IP:', req.ip);
+    res.status(429).json({ error: 'Too many trading requests, please try again later.' });
+  }
 });
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// 🔥 Log toutes les requêtes pour débogage
+app.use((req, res, next) => {
+  if (req.path.includes('/trading/balance')) {
+    console.log('[ALL REQUESTS] Method:', req.method, '- Path:', req.path, '- IP:', req.ip);
+    console.log('[ALL REQUESTS] Headers auth:', req.headers['authorization'] ? 'YES' : 'NO');
+    console.log('[ALL REQUESTS] Headers binance-key:', req.headers['x-binance-api-key'] ? 'YES' : 'NO');
+  }
+  next();
+});
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
