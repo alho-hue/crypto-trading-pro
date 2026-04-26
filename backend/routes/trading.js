@@ -353,7 +353,7 @@ router.all('/balance', optionalAuth, asyncHandler(async (req, res) => {
       const secretKey = req.body?.secretKey || req.headers['x-binance-secret-key'];
 
       const apiKeys = (apiKey && secretKey) ? { apiKey, secretKey } : null;
-      const balances = await binanceService.getAccountBalances(apiKeys);
+      const balances = await binanceService.getBalances(apiKeys);
       const usdt = balances.find(b => b.asset === 'USDT');
 
       console.log('[Trading] Real balance:', usdt ? usdt.free : 0);
