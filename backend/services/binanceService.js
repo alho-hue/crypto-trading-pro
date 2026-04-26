@@ -512,13 +512,6 @@ class BinanceService extends EventEmitter {
     const keys = apiKeys || { apiKey: this.apiKey, secretKey: this.apiSecret };
     if (!keys.apiKey || !keys.secretKey) {
       return this.getDemoBalances();
-    } 
-    return [
-        { asset: 'BTC', free: 0.1, locked: 0, total: 0.1 },
-        { asset: 'ETH', free: 1.5, locked: 0, total: 1.5 },
-        { asset: 'USDT', free: 500, locked: 0, total: 500 },
-        { asset: 'BNB', free: 5, locked: 0, total: 5 }
-      ];
     }
     
     const cacheKey = '/api/v3/account:balances';
