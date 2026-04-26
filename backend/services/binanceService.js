@@ -57,11 +57,15 @@ const CONFIG = {
     WS_FUTURES: 'wss://fstream.binance.com/ws'
   },
   
-  // Headers requis
+  // Headers requis - User-Agent standard pour éviter le blocage CloudFront
   HEADERS: {
-    'User-Agent': 'NEUROVEST-Trading-Bot/1.0',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     'Accept': 'application/json',
-    'Content-Type': 'application/json'
+    'Accept-Language': 'en-US,en;q=0.9',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'Content-Type': 'application/json',
+    'Origin': 'https://www.binance.com',
+    'Referer': 'https://www.binance.com/'
   }
 };
 
