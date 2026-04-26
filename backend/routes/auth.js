@@ -7,9 +7,9 @@ const router = express.Router();
 // JWT Secret
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
-// Generate JWT Token
+// Generate JWT Token - utilise 'id' pour correspondre au middleware auth.js
 const generateToken = (userId) => {
-  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: '7d' });
 };
 
 // Validation middleware
