@@ -60,10 +60,19 @@ interface TradeExecutionResult {
 
 export function useTrading(options: UseTradingOptions = {}) {
   const { autoConnect = true, defaultIsDemo = true } = options;
-  
+
+  // 🔥 Détecter si les clés API sont présentes pour activer le mode réel automatiquement
+  const hasApiKeys = () => {
+    const apiKey = localStorage.getItem('binance_api_key');
+    const secretKey = localStorage.getItem('binance_secret_key');
+    return !!(apiKey && secretKey && apiKey !== 'ta_cle_binance_ici' && secretKey !== 'ta_secret_binance_ici');
+  };
+
+  const shouldUseRealTrading = !defaultIsDemo || hasApiKeys();
+
   const socketRef = useRef<Socket | null>(null);
   const pricesRef = useRef<Map<string, number>>(new Map());
-  
+
   const [state, setState] = useState<TradingState>({
     balance: 0,
     positions: [],
@@ -71,7 +80,7 @@ export function useTrading(options: UseTradingOptions = {}) {
     isLoading: false,
     isExecuting: false,
     error: null,
-    isDemo: defaultIsDemo,
+    isDemo: !shouldUseRealTrading,
     isConnected: false
   });
 
@@ -342,23 +351,21 @@ export function useTrading(options: UseTradingOptions = {}) {
 
   // Réinitialiser compte démo
   const resetDemo = useCallback(async () => {
-    if (!state.isDemo) {
-      setState(prev => ({ ...prev, error: 'Can only reset demo account' }));
-      return { success: false };
-    }
-    
+    // Permettre le reset même en mode réel pour passer en démo
     setState(prev => ({ ...prev, isLoading: true }));
-    
+
     try {
       await resetDemoAccount();
-      await loadData(state.isDemo);
+      // Forcer le mode démo après reset
+      setState(prev => ({ ...prev, isDemo: true }));
+      await loadData(true);
       setState(prev => ({ ...prev, isLoading: false }));
       return { success: true };
     } catch (error) {
       setState(prev => ({ ...prev, isLoading: false }));
       return { success: false };
     }
-  }, [state.isDemo, loadData]);
+  }, [loadData]);
 
   // Calculer SL/TP par défaut
   const getDefaultSLTP = useCallback((
