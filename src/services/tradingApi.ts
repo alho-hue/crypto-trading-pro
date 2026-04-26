@@ -87,18 +87,24 @@ export interface Balance {
 
 // Helper pour les requêtes authentifiées
 async function authenticatedRequest(
-  endpoint: string, 
-  method: string = 'GET', 
-  body?: any
+  endpoint: string,
+  method: string = 'GET',
+  body?: any,
+  customHeaders?: Record<string, string>
 ): Promise<any> {
   const token = getAuthToken();
-  
+
   const headers: Record<string, string> = {
     'Content-Type': 'application/json'
   };
-  
+
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  // Fusionner les headers personnalisés
+  if (customHeaders) {
+    Object.assign(headers, customHeaders);
   }
   
   const options: RequestInit = {
@@ -253,16 +259,18 @@ export async function closePosition(
  */
 export async function getTradingBalance(isDemo: boolean = false): Promise<Balance> {
   try {
-    // Pour le mode réel, envoyer les clés API depuis localStorage
-    const body = isDemo ? undefined : {
-      apiKey: localStorage.getItem('binance_api_key') || '',
-      secretKey: localStorage.getItem('binance_secret_key') || ''
-    };
+    // Pour le mode réel, envoyer les clés API dans les headers (évite CORS preflight)
+    const headers: Record<string, string> = {};
+    if (!isDemo) {
+      headers['x-binance-api-key'] = localStorage.getItem('binance_api_key') || '';
+      headers['x-binance-secret-key'] = localStorage.getItem('binance_secret_key') || '';
+    }
 
     const result = await authenticatedRequest(
       `/api/trading/balance?isDemo=${isDemo ? 'true' : 'false'}`,
-      isDemo ? 'GET' : 'POST',
-      body
+      'GET',
+      undefined,
+      headers
     );
 
     return {
